@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SAS
 
 This project can be used as a starting point to create your own Vaadin application with Spring Boot.
@@ -49,3 +50,6 @@ java -jar target/sas-1.0-SNAPSHOT.jar
 - Find add-ons at [vaadin.com/directory](https://vaadin.com/directory).
 - Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/vaadin) or join our [Forum](https://vaadin.com/forum).
 - Report issues, create pull requests in [GitHub](https://github.com/vaadin).
+=======
+# kopi-in
+>>>>>>> 24e409cfb8dd18a8b687f3c21c76315b10632a90
