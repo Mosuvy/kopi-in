@@ -1,16 +1,17 @@
 package com.example.application.models;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Orders {
     private String id;
     private String user_id;
+    private String created_by;
     private String status;
     private String order_type;
     private Double total_price;
     private String promo_id;
     private Double final_price;
-    private Date created_at;
+    private Timestamp created_at;
 
     public String getId() {
         return id;
@@ -26,6 +27,14 @@ public class Orders {
 
     public void setUser_id(String user_id) {
         this.user_id = user_id;
+    }
+
+    public String getCreated_by() {
+        return created_by;
+    }
+
+    public void setCreated_by(String created_by) {
+        this.created_by = created_by;
     }
 
     public String getStatus() {
@@ -68,11 +77,11 @@ public class Orders {
         this.final_price = final_price;
     }
 
-    public Date getCreated_at() {
+    public Timestamp getCreated_at() {
         return created_at;
     }
 
-    public void setCreated_at(Date created_at) {
+    public void setCreated_at(Timestamp created_at) {
         this.created_at = created_at;
     }
 }

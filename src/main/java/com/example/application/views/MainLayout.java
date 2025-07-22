@@ -20,7 +20,6 @@ import java.util.List;
 /**
  * The main view is a top-level placeholder for other views.
  */
-@Layout
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
 
