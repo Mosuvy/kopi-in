@@ -40,7 +40,7 @@ public class LoginPage extends HorizontalLayout {
         // Right side - Login form
         VerticalLayout formSection = createFormSection();
 
-        // Main container
+        // Main container - matching RegisterPage dimensions
         HorizontalLayout mainContainer = new HorizontalLayout(brandingSection, formSection);
         mainContainer.setAlignItems(FlexComponent.Alignment.CENTER);
         mainContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
@@ -49,7 +49,7 @@ public class LoginPage extends HorizontalLayout {
         mainContainer.getStyle().set("box-shadow", "0 20px 60px rgba(0, 0, 0, 0.1)");
         mainContainer.getStyle().set("overflow", "hidden");
         mainContainer.setWidth("900px");
-        mainContainer.setHeight("600px");
+        mainContainer.setHeight("520px"); // Changed from 600px to match RegisterPage
 
         add(mainContainer);
     }
@@ -65,24 +65,25 @@ public class LoginPage extends HorizontalLayout {
         brandingSection.getStyle().set("color", "white");
         brandingSection.setPadding(true);
 
-        // Logo icon
-        Image Kopi_in = new Image("/images/logo_kopi-in.png", "Kopi.in Logo");
-        Kopi_in.setWidth("200px");
-        Kopi_in.getStyle().set("margin-bottom", "30px");
+        // Logo icon - matching RegisterPage size
+        Image Kopi_in = new Image("/images/logo_kopi-in_dark.png", "Kopi.in Logo");
+        Kopi_in.setWidth("180px"); // Reduced from 200px to match RegisterPage
+        Kopi_in.getStyle().set("margin-bottom", "20px"); // Reduced from 30px to match RegisterPage
 
-        // Tagline
+        // Tagline - matching RegisterPage size
         Paragraph tagline = new Paragraph("Kopiin Aja!");
-        tagline.getStyle().set("font-size", "28px");
+        tagline.getStyle().set("font-size", "24px"); // Reduced from 28px to match RegisterPage
         tagline.getStyle().set("opacity", "0.9");
         tagline.getStyle().set("text-align", "center");
-        tagline.getStyle().set("margin", "0 0 15px 0");
+        tagline.getStyle().set("margin", "0 0 10px 0"); // Reduced from 15px to match RegisterPage
         // Text shadow untuk readability pada background yang lebih terang
         tagline.getStyle().set("text-shadow", "1px 1px 2px rgba(0, 0, 0, 0.3)");
 
         // Feature highlights
         VerticalLayout features = new VerticalLayout();
-        features.setSpacing(true);
+        features.setSpacing(false); // Remove spacing to match RegisterPage
         features.setAlignItems(FlexComponent.Alignment.START);
+        features.getStyle().set("gap", "4px"); // Very small gap between items to match RegisterPage
 
         String[] featureList = {
                 "Harga Murah & Terjangkau",
@@ -92,23 +93,25 @@ public class LoginPage extends HorizontalLayout {
         };
 
         Icon coffeeIcon = new Icon(VaadinIcon.COFFEE);
-        coffeeIcon.setSize("80px");
+        coffeeIcon.setSize("60px"); // Reduced from 80px to match RegisterPage
         // Warna icon disesuaikan dengan tema yang lebih cerah
         coffeeIcon.getStyle().set("color", "#8B4513");
-        coffeeIcon.getStyle().set("margin-top", "30px");
+        coffeeIcon.getStyle().set("margin-top", "15px"); // Reduced from 30px to match RegisterPage
 
         for (String feature : featureList) {
             HorizontalLayout featureItem = new HorizontalLayout();
             featureItem.setAlignItems(FlexComponent.Alignment.CENTER);
+            featureItem.setSpacing(false);
+            featureItem.getStyle().set("gap", "8px");
 
             Icon checkIcon = new Icon(VaadinIcon.CHECK);
-            checkIcon.setSize("16px");
+            checkIcon.setSize("14px"); // Reduced from 16px to match RegisterPage
             // Warna check icon disesuaikan
             checkIcon.getStyle().set("color", "#8B4513");
 
             Paragraph featureText = new Paragraph(feature);
             featureText.getStyle().set("margin", "0");
-            featureText.getStyle().set("font-size", "14px");
+            featureText.getStyle().set("font-size", "13px"); // Reduced from 14px to match RegisterPage
             featureText.getStyle().set("opacity", "0.95");
             // Text shadow untuk readability
             featureText.getStyle().set("text-shadow", "1px 1px 2px rgba(0, 0, 0, 0.2)");
@@ -127,24 +130,26 @@ public class LoginPage extends HorizontalLayout {
         formSection.setHeight("100%");
         formSection.setAlignItems(FlexComponent.Alignment.CENTER);
         formSection.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        formSection.setPadding(true);
+        formSection.setPadding(false); // Remove padding to match RegisterPage
+        formSection.getStyle().set("padding", "20px"); // Manual padding control to match RegisterPage
 
-        // Form container
+        // Form container - matching RegisterPage width
         VerticalLayout formContainer = new VerticalLayout();
-        formContainer.setWidth("350px");
+        formContainer.setWidth("300px"); // Reduced from 350px to match RegisterPage
         formContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        formContainer.setSpacing(false); // Remove default spacing for tighter control
 
-        // Header
+        // Header - matching RegisterPage sizes
         H2 formTitle = new H2("Selamat Datang");
         formTitle.getStyle().set("color", "#3C1810");
         formTitle.getStyle().set("font-weight", "600");
-        formTitle.getStyle().set("margin", "0 0 10px 0");
-        formTitle.getStyle().set("font-size", "32px");
+        formTitle.getStyle().set("margin", "0 0 2px 0"); // Much tighter to match RegisterPage
+        formTitle.getStyle().set("font-size", "24px"); // Reduced from 32px to match RegisterPage
 
         Paragraph formSubtitle = new Paragraph("Masuk ke akun Kopi.in Anda");
         formSubtitle.getStyle().set("color", "#8B4513");
-        formSubtitle.getStyle().set("margin", "0 0 25px 0");
-        formSubtitle.getStyle().set("font-size", "16px");
+        formSubtitle.getStyle().set("margin", "0 0 10px 0"); // Reduced from 25px to match RegisterPage
+        formSubtitle.getStyle().set("font-size", "12px"); // Reduced from 16px to match RegisterPage
 
         // Form fields
         createFormFields(formContainer);
@@ -160,11 +165,12 @@ public class LoginPage extends HorizontalLayout {
     }
 
     private void createFormFields(VerticalLayout container) {
+        // Username field - matching RegisterPage styling
         Span usernameLabel = new Span("Username");
         usernameLabel.getStyle().set("color", "#3C1810");
         usernameLabel.getStyle().set("font-weight", "500");
-        usernameLabel.getStyle().set("font-size", "14px");
-        usernameLabel.getStyle().set("margin-bottom", "-8px");
+        usernameLabel.getStyle().set("font-size", "12px"); // Reduced from 14px to match RegisterPage
+        usernameLabel.getStyle().set("margin-bottom", "2px"); // Changed from -8px to match RegisterPage
         usernameLabel.getStyle().set("display", "block");
         usernameLabel.getStyle().set("text-align", "left");
         usernameLabel.getStyle().set("width", "100%");
@@ -172,15 +178,16 @@ public class LoginPage extends HorizontalLayout {
 
         usernameField = new TextField();
         usernameField.setWidth("100%");
-        usernameField.getStyle().set("margin-bottom", "20px");
+        usernameField.getStyle().set("margin-bottom", "4px"); // Changed from 20px to match RegisterPage
         usernameField.getStyle().set("--lumo-border-radius", "8px");
-        usernameField.getStyle().set("height", "50px");
+        usernameField.getStyle().set("height", "32px"); // Reduced from 50px to match RegisterPage
 
+        // Password field - matching RegisterPage styling
         Span passwordLabel = new Span("Password");
         passwordLabel.getStyle().set("color", "#3C1810");
         passwordLabel.getStyle().set("font-weight", "500");
-        passwordLabel.getStyle().set("font-size", "14px");
-        passwordLabel.getStyle().set("margin-bottom", "-8px");
+        passwordLabel.getStyle().set("font-size", "12px"); // Reduced from 14px to match RegisterPage
+        passwordLabel.getStyle().set("margin-bottom", "2px"); // Changed from -8px to match RegisterPage
         passwordLabel.getStyle().set("display", "block");
         passwordLabel.getStyle().set("text-align", "left");
         passwordLabel.getStyle().set("width", "100%");
@@ -188,9 +195,9 @@ public class LoginPage extends HorizontalLayout {
 
         passwordField = new PasswordField();
         passwordField.setWidth("100%");
-        passwordField.getStyle().set("margin-bottom", "15px");
+        passwordField.getStyle().set("margin-bottom", "8px"); // Changed from 15px to match RegisterPage
         passwordField.getStyle().set("--lumo-border-radius", "8px");
-        passwordField.getStyle().set("height", "50px");
+        passwordField.getStyle().set("height", "32px"); // Reduced from 50px to match RegisterPage
 
         usernameField.getElement().executeJs(
                 "this.style.setProperty('--lumo-primary-color', '#007bff');" +
@@ -213,12 +220,12 @@ public class LoginPage extends HorizontalLayout {
         HorizontalLayout registerLayout = new HorizontalLayout();
         registerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         registerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        registerLayout.getStyle().set("margin-bottom", "20px");
+        registerLayout.getStyle().set("margin-bottom", "6px"); // Changed from 20px to match RegisterPage
         registerLayout.setSpacing(false);
 
         Span registerText = new Span("Belum Punya Akun? ");
         registerText.getStyle().set("color", "#666");
-        registerText.getStyle().set("font-size", "14px");
+        registerText.getStyle().set("font-size", "12px"); // Reduced from 14px to match RegisterPage
         registerText.getStyle().set("margin-right", "4px");
 
         // Use Button instead of Anchor for clickable functionality
@@ -226,7 +233,7 @@ public class LoginPage extends HorizontalLayout {
         registerLink.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         registerLink.getStyle().set("color", "#007bff");
         registerLink.getStyle().set("text-decoration", "none");
-        registerLink.getStyle().set("font-size", "14px");
+        registerLink.getStyle().set("font-size", "12px"); // Reduced from 14px to match RegisterPage
         registerLink.getStyle().set("font-weight", "500");
         registerLink.getStyle().set("transition", "all 0.3s ease");
         registerLink.getStyle().set("padding", "0");
@@ -265,9 +272,9 @@ public class LoginPage extends HorizontalLayout {
         loginButton.getStyle().set("background", "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)");
         loginButton.getStyle().set("border", "none");
         loginButton.getStyle().set("border-radius", "8px");
-        loginButton.getStyle().set("height", "50px");
+        loginButton.getStyle().set("height", "36px"); // Reduced from 50px to match RegisterPage
         loginButton.getStyle().set("font-weight", "600");
-        loginButton.getStyle().set("font-size", "16px");
+        loginButton.getStyle().set("font-size", "14px"); // Reduced from 16px to match RegisterPage
         loginButton.getStyle().set("cursor", "pointer");
         loginButton.getStyle().set("transition", "all 0.3s ease");
 
