@@ -12,7 +12,7 @@ public class koneksi {
             return connection;
         else {
             String dbUrl = "jdbc:mysql://localhost:3306/" +
-                    "kopi_in?user=root&password=";
+                    "kopi-in?user=root&password=";
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(dbUrl);

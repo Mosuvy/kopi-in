@@ -1,6 +1,7 @@
 package com.example.application.models;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Promo {
     private String id;
@@ -11,8 +12,8 @@ public class Promo {
     private Double min_purchase;
     private Date start_date;
     private Date end_date;
-    private Date created_at;
-    private Date update_at;
+    private Timestamp created_at;
+    private Timestamp update_at;
 
     public String getId() {
         return id;
@@ -78,19 +79,19 @@ public class Promo {
         this.end_date = end_date;
     }
 
-    public Date getCreated_at() {
+    public Timestamp getCreated_at() {
         return created_at;
     }
 
-    public void setCreated_at(Date created_at) {
+    public void setCreated_at(Timestamp created_at) {
         this.created_at = created_at;
     }
 
-    public Date getUpdate_at() {
+    public Timestamp getUpdate_at() {
         return update_at;
     }
 
-    public void setUpdate_at(Date update_at) {
+    public void setUpdate_at(Timestamp update_at) {
         this.update_at = update_at;
     }
 }

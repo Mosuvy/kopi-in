@@ -1,13 +1,13 @@
 package com.example.application.models;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Transactions {
     private String id;
     private String order_id;
     private String payment_method;
     private Double paid_amount;
-    private Date paid_at;
+    private Timestamp paid_at;
     private Double change_returned;
 
     public String getId() {
@@ -42,11 +42,11 @@ public class Transactions {
         this.paid_amount = paid_amount;
     }
 
-    public Date getPaid_at() {
+    public Timestamp getPaid_at() {
         return paid_at;
     }
 
-    public void setPaid_at(Date paid_at) {
+    public void setPaid_at(Timestamp paid_at) {
         this.paid_at = paid_at;
     }
 
