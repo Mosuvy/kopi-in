@@ -60,33 +60,24 @@ public class LoginPage extends HorizontalLayout {
         brandingSection.setHeight("100%");
         brandingSection.setAlignItems(FlexComponent.Alignment.CENTER);
         brandingSection.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        brandingSection.getStyle().set("background", "linear-gradient(135deg, #3C1810 0%, #5D2914 100%)");
+        // Warna coklat yang lebih cerah untuk branding section
+        brandingSection.getStyle().set("background", "linear-gradient(135deg, #A0522D 0%, #CD853F 50%, #DEB887 100%)");
         brandingSection.getStyle().set("color", "white");
         brandingSection.setPadding(true);
 
         // Logo icon
-//        Icon coffeeIcon = new Icon(VaadinIcon.COFFEE);
-//        coffeeIcon.setSize("80px");
-//        coffeeIcon.getStyle().set("color", "#D2691E");
-//        coffeeIcon.getStyle().set("margin-bottom", "30px");
-        Image coffeeIcon = new Image("/images/logo_kopi-in.png", "Kopi.in Logo");
-        coffeeIcon.setWidth("120px");
-        coffeeIcon.getStyle().set("margin-bottom", "30px");
-
-        // Brand name
-        H1 brandName = new H1("Kopi.in");
-        brandName.getStyle().set("font-size", "48px");
-        brandName.getStyle().set("font-weight", "700");
-        brandName.getStyle().set("color", "#FFFAFA");
-        brandName.getStyle().set("margin", "0 0 20px 0");
-        brandName.getStyle().set("font-family", "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif");
+        Image Kopi_in = new Image("/images/logo_kopi-in.png", "Kopi.in Logo");
+        Kopi_in.setWidth("200px");
+        Kopi_in.getStyle().set("margin-bottom", "30px");
 
         // Tagline
-        Paragraph tagline = new Paragraph("Modern Coffee Shop Management");
-        tagline.getStyle().set("font-size", "18px");
-        tagline.getStyle().set("opacity", "0.8");
+        Paragraph tagline = new Paragraph("Kopiin Aja!");
+        tagline.getStyle().set("font-size", "28px");
+        tagline.getStyle().set("opacity", "0.9");
         tagline.getStyle().set("text-align", "center");
-        tagline.getStyle().set("margin", "0 0 40px 0");
+        tagline.getStyle().set("margin", "0 0 15px 0");
+        // Text shadow untuk readability pada background yang lebih terang
+        tagline.getStyle().set("text-shadow", "1px 1px 2px rgba(0, 0, 0, 0.3)");
 
         // Feature highlights
         VerticalLayout features = new VerticalLayout();
@@ -94,11 +85,17 @@ public class LoginPage extends HorizontalLayout {
         features.setAlignItems(FlexComponent.Alignment.START);
 
         String[] featureList = {
-                "Inventory Management",
-                "Sales Analytics",
-                "Customer Management",
-                "Real-time Reporting"
+                "Harga Murah & Terjangkau",
+                "Rasa Kopi yang Khas & Nikmat",
+                "Tempat Nyaman & Instagramable",
+                "Pelayanan Cepat & Ramah"
         };
+
+        Icon coffeeIcon = new Icon(VaadinIcon.COFFEE);
+        coffeeIcon.setSize("80px");
+        // Warna icon disesuaikan dengan tema yang lebih cerah
+        coffeeIcon.getStyle().set("color", "#8B4513");
+        coffeeIcon.getStyle().set("margin-top", "30px");
 
         for (String feature : featureList) {
             HorizontalLayout featureItem = new HorizontalLayout();
@@ -106,18 +103,21 @@ public class LoginPage extends HorizontalLayout {
 
             Icon checkIcon = new Icon(VaadinIcon.CHECK);
             checkIcon.setSize("16px");
-            checkIcon.getStyle().set("color", "#D2691E");
+            // Warna check icon disesuaikan
+            checkIcon.getStyle().set("color", "#8B4513");
 
             Paragraph featureText = new Paragraph(feature);
             featureText.getStyle().set("margin", "0");
             featureText.getStyle().set("font-size", "14px");
-            featureText.getStyle().set("opacity", "0.9");
+            featureText.getStyle().set("opacity", "0.95");
+            // Text shadow untuk readability
+            featureText.getStyle().set("text-shadow", "1px 1px 2px rgba(0, 0, 0, 0.2)");
 
             featureItem.add(checkIcon, featureText);
             features.add(featureItem);
         }
 
-        brandingSection.add(coffeeIcon, brandName, tagline, features);
+        brandingSection.add(Kopi_in, tagline, features, coffeeIcon);
         return brandingSection;
     }
 
@@ -135,19 +135,22 @@ public class LoginPage extends HorizontalLayout {
         formContainer.setAlignItems(FlexComponent.Alignment.CENTER);
 
         // Header
-        H2 formTitle = new H2("Welcome Back");
+        H2 formTitle = new H2("Selamat Datang");
         formTitle.getStyle().set("color", "#3C1810");
         formTitle.getStyle().set("font-weight", "600");
         formTitle.getStyle().set("margin", "0 0 10px 0");
         formTitle.getStyle().set("font-size", "32px");
 
-        Paragraph formSubtitle = new Paragraph("Sign in to your account");
+        Paragraph formSubtitle = new Paragraph("Masuk ke akun Kopi.in Anda");
         formSubtitle.getStyle().set("color", "#8B4513");
-        formSubtitle.getStyle().set("margin", "0 0 40px 0");
+        formSubtitle.getStyle().set("margin", "0 0 25px 0");
         formSubtitle.getStyle().set("font-size", "16px");
 
         // Form fields
         createFormFields(formContainer);
+
+        // Register link
+        createRegisterLink(formContainer);
 
         // Login button
         createLoginButton(formContainer);
@@ -157,36 +160,106 @@ public class LoginPage extends HorizontalLayout {
     }
 
     private void createFormFields(VerticalLayout container) {
-        // Username field
-        usernameField = new TextField("Username");
+        Span usernameLabel = new Span("Username");
+        usernameLabel.getStyle().set("color", "#3C1810");
+        usernameLabel.getStyle().set("font-weight", "500");
+        usernameLabel.getStyle().set("font-size", "14px");
+        usernameLabel.getStyle().set("margin-bottom", "-8px");
+        usernameLabel.getStyle().set("display", "block");
+        usernameLabel.getStyle().set("text-align", "left");
+        usernameLabel.getStyle().set("width", "100%");
+        usernameLabel.getStyle().set("align-self", "flex-start");
+
+        usernameField = new TextField();
         usernameField.setWidth("100%");
         usernameField.getStyle().set("margin-bottom", "20px");
         usernameField.getStyle().set("--lumo-border-radius", "8px");
         usernameField.getStyle().set("height", "50px");
 
-        // Password field
-        passwordField = new PasswordField("Password");
+        Span passwordLabel = new Span("Password");
+        passwordLabel.getStyle().set("color", "#3C1810");
+        passwordLabel.getStyle().set("font-weight", "500");
+        passwordLabel.getStyle().set("font-size", "14px");
+        passwordLabel.getStyle().set("margin-bottom", "-8px");
+        passwordLabel.getStyle().set("display", "block");
+        passwordLabel.getStyle().set("text-align", "left");
+        passwordLabel.getStyle().set("width", "100%");
+        passwordLabel.getStyle().set("align-self", "flex-start");
+
+        passwordField = new PasswordField();
         passwordField.setWidth("100%");
-        passwordField.getStyle().set("margin-bottom", "30px");
+        passwordField.getStyle().set("margin-bottom", "15px");
         passwordField.getStyle().set("--lumo-border-radius", "8px");
         passwordField.getStyle().set("height", "50px");
 
-        // Focus styling with coffee theme
         usernameField.getElement().executeJs(
-                "this.addEventListener('focus', () => this.style.boxShadow = '0 0 0 2px #D2691E33');" +
-                        "this.addEventListener('blur', () => this.style.boxShadow = 'none');"
+                "this.style.setProperty('--lumo-primary-color', '#007bff');" +
+                        "this.addEventListener('focus', () => {" +
+                        "  this.style.setProperty('--lumo-primary-color', '#007bff');" +
+                        "});"
         );
 
         passwordField.getElement().executeJs(
-                "this.addEventListener('focus', () => this.style.boxShadow = '0 0 0 2px #D2691E33');" +
-                        "this.addEventListener('blur', () => this.style.boxShadow = 'none');"
+                "this.style.setProperty('--lumo-primary-color', '#007bff');" +
+                        "this.addEventListener('focus', () => {" +
+                        "  this.style.setProperty('--lumo-primary-color', '#007bff');" +
+                        "});"
         );
 
-        container.add(usernameField, passwordField);
+        container.add(usernameLabel, usernameField, passwordLabel, passwordField);
+    }
+
+    private void createRegisterLink(VerticalLayout container) {
+        HorizontalLayout registerLayout = new HorizontalLayout();
+        registerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        registerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        registerLayout.getStyle().set("margin-bottom", "20px");
+        registerLayout.setSpacing(false);
+
+        Span registerText = new Span("Belum Punya Akun? ");
+        registerText.getStyle().set("color", "#666");
+        registerText.getStyle().set("font-size", "14px");
+        registerText.getStyle().set("margin-right", "4px");
+
+        // Use Button instead of Anchor for clickable functionality
+        Button registerLink = new Button("Register disini");
+        registerLink.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        registerLink.getStyle().set("color", "#007bff");
+        registerLink.getStyle().set("text-decoration", "none");
+        registerLink.getStyle().set("font-size", "14px");
+        registerLink.getStyle().set("font-weight", "500");
+        registerLink.getStyle().set("transition", "all 0.3s ease");
+        registerLink.getStyle().set("padding", "0");
+        registerLink.getStyle().set("margin", "0");
+        registerLink.getStyle().set("min-height", "unset");
+        registerLink.getStyle().set("background", "transparent");
+        registerLink.getStyle().set("border", "none");
+        registerLink.getStyle().set("outline", "none");
+
+        // hover effect for register link
+        registerLink.getElement().executeJs(
+                "this.addEventListener('mouseenter', () => {" +
+                        "  this.style.textDecoration = 'underline';" +
+                        "  this.style.color = '#0056b3';" +
+                        "});" +
+                        "this.addEventListener('mouseleave', () => {" +
+                        "  this.style.textDecoration = 'none';" +
+                        "  this.style.color = '#007bff';" +
+                        "});"
+        );
+
+        // Click handler for register link
+        registerLink.addClickListener(event -> {
+            // Navigate to register page
+            getUI().ifPresent(ui -> ui.navigate("register"));
+        });
+
+        registerLayout.add(registerText, registerLink);
+        container.add(registerLayout);
     }
 
     private void createLoginButton(VerticalLayout container) {
-        loginButton = new Button("Sign In");
+        loginButton = new Button("Login");
         loginButton.setWidth("100%");
         loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
         loginButton.getStyle().set("background", "linear-gradient(135deg, #8B4513 0%, #D2691E 100%)");
@@ -234,7 +307,7 @@ public class LoginPage extends HorizontalLayout {
         }
 
         // Show loading state
-        loginButton.setText("Signing in...");
+        loginButton.setText("Logging in...");
         loginButton.setEnabled(false);
 
         // Simulate login process
@@ -247,7 +320,7 @@ public class LoginPage extends HorizontalLayout {
                 }
 
                 // Reset button
-                loginButton.setText("Sign In");
+                loginButton.setText("Login");
                 loginButton.setEnabled(true);
 
                 // Simple validation (replace with actual authentication)
