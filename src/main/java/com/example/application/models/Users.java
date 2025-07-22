@@ -8,6 +8,7 @@ public class Users {
     private String email;
     private String password;
     private String role;
+    private Integer is_active;
     private Timestamp created_at;
 
     public String getId() {
@@ -48,6 +49,14 @@ public class Users {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Integer getIs_active() {
+        return is_active;
+    }
+
+    public void setIs_active(Integer is_active) {
+        this.is_active = is_active;
     }
 
     public Timestamp getCreated_at() {
