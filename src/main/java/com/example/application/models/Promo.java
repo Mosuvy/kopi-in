@@ -9,11 +9,13 @@ public class Promo {
     private String code;
     private String description;
     private Double discount_value;
+    private Integer discount_percentage;
     private Double min_purchase;
     private Date start_date;
     private Date end_date;
     private Timestamp created_at;
     private Timestamp update_at;
+    private boolean is_active;
 
     public String getId() {
         return id;
@@ -55,6 +57,14 @@ public class Promo {
         this.discount_value = discount_value;
     }
 
+    public Integer getDiscount_percentage() {
+        return discount_percentage;
+    }
+
+    public void setDiscount_percentage(Integer discount_percentage) {
+        this.discount_percentage = discount_percentage;
+    }
+
     public Double getMin_purchase() {
         return min_purchase;
     }
@@ -93,5 +103,13 @@ public class Promo {
 
     public void setUpdate_at(Timestamp update_at) {
         this.update_at = update_at;
+    }
+
+    public boolean isIs_active() {
+        return is_active;
+    }
+
+    public void setIs_active(boolean is_active) {
+        this.is_active = is_active;
     }
 }

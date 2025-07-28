@@ -4,8 +4,8 @@ import java.sql.Timestamp;
 
 public class Orders {
     private String id;
-    private String user_id;
-    private String created_by;
+    private Integer user_id;
+    private Integer created_by;
     private String status;
     private String order_type;
     private Double total_price;
@@ -21,19 +21,19 @@ public class Orders {
         this.id = id;
     }
 
-    public String getUser_id() {
+    public Integer getUser_id() {
         return user_id;
     }
 
-    public void setUser_id(String user_id) {
+    public void setUser_id(Integer user_id) {
         this.user_id = user_id;
     }
 
-    public String getCreated_by() {
+    public Integer getCreated_by() {
         return created_by;
     }
 
-    public void setCreated_by(String created_by) {
+    public void setCreated_by(Integer created_by) {
         this.created_by = created_by;
     }
 
