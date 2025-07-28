@@ -13,8 +13,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.PageTitle;
 
-@Route("login")
+@PageTitle("Login - Kopi.in")
+@Route("")
 public class LoginPage extends HorizontalLayout {
 
     private TextField usernameField;
