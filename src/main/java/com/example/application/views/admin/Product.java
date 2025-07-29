@@ -95,7 +95,8 @@ public class Product extends VerticalLayout {
         Categories category = new Categories();
         category.setId(id);
         category.setName(name);
-        category.setCode(code);
+        category.setDescription(code);  // Using the code as description for backward compatibility
+        category.setIs_active(1);  // Setting as active by default
         return category;
     }
 
@@ -228,7 +229,7 @@ public class Product extends VerticalLayout {
         statsSection.getStyle().set("position", "relative").set("z-index", "2");
 
         long activeProducts = products.stream().filter(p -> p.getIs_active() == 1).count();
-        long totalStock = products.stream().mapToInt(p -> p.getStock() != null ? p.getStock() : 0).sum();
+        long totalStock = products.stream().mapToInt(p -> p.getStock()).sum();
 
         Span totalProducts = new Span("Total: " + products.size() + " Produk (" + activeProducts + " Aktif)");
         totalProducts.getStyle()
