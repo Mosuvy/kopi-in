@@ -1,5 +1,6 @@
 package com.example.application.views.admin;
 
+import com.example.application.dao.PromoDAO;
 import com.example.application.models.Promo;
 import com.example.application.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -60,64 +61,20 @@ public class Discount extends VerticalLayout {
     }
 
     private void initializeData() {
-        promoList = new ArrayList<>();
+        PromoDAO service = new PromoDAO();
+        promoList = service.getListPromo();
 
-        // Data statis untuk demo
-        Promo promo1 = new Promo();
-        promo1.setId("1");
-        promo1.setName("Promo Pagi Hari");
-        promo1.setCode("MORNING20");
-        promo1.setDescription("Diskon khusus untuk pembelian pagi hari jam 06:00-10:00");
-        promo1.setDiscount_value(20.0);
-        promo1.setMin_purchase(50000.0);
-        promo1.setStart_date(Date.valueOf("2024-01-01"));
-        promo1.setEnd_date(Date.valueOf("2024-12-31"));
-        promoList.add(promo1);
-
-        Promo promo2 = new Promo();
-        promo2.setId("2");
-        promo2.setName("Weekend Special");
-        promo2.setCode("WEEKEND15");
-        promo2.setDescription("Diskon weekend untuk semua menu favorit");
-        promo2.setDiscount_value(15.0);
-        promo2.setMin_purchase(75000.0);
-        promo2.setStart_date(Date.valueOf("2024-01-01"));
-        promo2.setEnd_date(Date.valueOf("2024-12-31"));
-        promoList.add(promo2);
-
-        Promo promo3 = new Promo();
-        promo3.setId("3");
-        promo3.setName("Student Discount");
-        promo3.setCode("STUDENT10");
-        promo3.setDescription("Diskon khusus untuk mahasiswa dengan menunjukkan kartu pelajar");
-        promo3.setDiscount_value(10.0);
-        promo3.setMin_purchase(30000.0);
-        promo3.setStart_date(Date.valueOf("2024-01-01"));
-        promo3.setEnd_date(Date.valueOf("2024-12-31"));
-        promoList.add(promo3);
-
-        Promo promo4 = new Promo();
-        promo4.setId("4");
-        promo4.setName("New Customer");
-        promo4.setCode("WELCOME25");
-        promo4.setDescription("Promo selamat datang untuk pelanggan baru");
-        promo4.setDiscount_value(25.0);
-        promo4.setMin_purchase(100000.0);
-        promo4.setStart_date(Date.valueOf("2024-01-01"));
-        promo4.setEnd_date(Date.valueOf("2024-06-30"));
-        promoList.add(promo4);
-
-        Promo promo5 = new Promo();
-        promo5.setId("5");
-        promo5.setName("Loyalty Reward");
-        promo5.setCode("LOYAL30");
-        promo5.setDescription("Reward untuk pelanggan setia dengan minimal 10 transaksi");
-        promo5.setDiscount_value(30.0);
-        promo5.setMin_purchase(150000.0);
-        promo5.setStart_date(Date.valueOf("2024-07-01"));
-        promo5.setEnd_date(Date.valueOf("2024-12-31"));
-        promoList.add(promo5);
+        // Add null checks or default dates if needed
+        for (Promo promo : promoList) {
+            if (promo.getStart_date() == null) {
+                promo.setStart_date(Date.valueOf(LocalDate.now()));
+            }
+            if (promo.getEnd_date() == null) {
+                promo.setEnd_date(Date.valueOf(LocalDate.now().plusMonths(1)));
+            }
+        }
     }
+
 
     private Component createHeader() {
         HorizontalLayout header = new HorizontalLayout();
