@@ -647,6 +647,9 @@ public class Discount extends VerticalLayout {
             promo.setEnd_date(Date.valueOf(now.plusMonths(6)));
         }
 
+        // Add this line to persist the change to the database
+        promoDAO.updatePromo(promo);
+
         grid.getDataProvider().refreshAll();
         String newStatus = isPromoActive(promo) ? "Aktif" : "Tidak Aktif";
         Notification.show("Status discount berhasil diubah menjadi " + newStatus,
