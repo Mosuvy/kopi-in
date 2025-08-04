@@ -1,5 +1,7 @@
 package com.example.application.views.admin;
 
+import com.example.application.dao.UserDAO;
+import com.example.application.models.Users;
 import com.example.application.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -13,6 +15,8 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -20,20 +24,27 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @PageTitle("User Management - Kopi.in")
 @Route(value = "admin/users", layout = MainLayout.class)
 public class User extends VerticalLayout {
 
-    private Grid<com.example.application.models.Users> grid;
-    private List<com.example.application.models.Users> usersList;
+    private Grid<Users> grid;
+    private List<Users> usersList;
+    private List<Users> filteredUsersList;
+    private TextField searchField;
+    private ComboBox<String> roleFilter;
+    private final UserDAO userDAO = new UserDAO();
 
     public User() {
         addClassName("users-view");
@@ -41,70 +52,50 @@ public class User extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
 
-        // Background gradient untuk seluruh halaman
         getElement().getStyle()
                 .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
                 .set("min-height", "100vh")
                 .set("padding", "0");
 
-        // Initialize data
         initializeData();
+        filteredUsersList = new ArrayList<>(usersList);
 
         add(createHeader(), createStatsCards(), createUserGrid());
     }
 
     private void initializeData() {
-        usersList = new ArrayList<>();
+        usersList = userDAO.getListUsers();
+        System.out.println("=== DEBUG: Data User dari Database ===");
+        usersList.forEach(user -> System.out.println(
+                "ID: " + user.getId() +
+                        ", Username: " + user.getUsername() +
+                        ", Role: " + user.getRole()
+        ));
+        filteredUsersList = new ArrayList<>(usersList);
+    }
 
-        // Sample data
-        com.example.application.models.Users admin1 = new com.example.application.models.Users();
-        admin1.setId("USR001");
-        admin1.setUsername("admin.kopi");
-        admin1.setEmail("admin@kopi.in");
-        admin1.setRole("Admin");
-        admin1.setIs_active(1);
-        admin1.setCreated_at(Timestamp.valueOf("2024-01-15 10:30:00"));
+    private void filterUsers() {
+        String searchTerm = searchField.getValue().toLowerCase();
+        String selectedRole = roleFilter.getValue();
 
-        com.example.application.models.Users kasir1 = new com.example.application.models.Users();
-        kasir1.setId("USR002");
-        kasir1.setUsername("kasir.satu");
-        kasir1.setEmail("kasir1@kopi.in");
-        kasir1.setRole("Kasir");
-        kasir1.setIs_active(1);
-        kasir1.setCreated_at(Timestamp.valueOf("2024-01-20 14:15:00"));
+        filteredUsersList = usersList.stream()
+                .filter(user -> {
+                    boolean matchesSearch = user.getUsername().toLowerCase().contains(searchTerm) ||
+                            user.getEmail().toLowerCase().contains(searchTerm) ||
+                            user.getId().toLowerCase().contains(searchTerm);
 
-        com.example.application.models.Users kasir2 = new com.example.application.models.Users();
-        kasir2.setId("USR003");
-        kasir2.setUsername("kasir.dua");
-        kasir2.setEmail("kasir2@kopi.in");
-        kasir2.setRole("Kasir");
-        kasir2.setIs_active(0);
-        kasir2.setCreated_at(Timestamp.valueOf("2024-02-01 09:20:00"));
+                    boolean matchesRole = selectedRole.equals("Semua") ||
+                            (user.getRole() != null && user.getRole().equalsIgnoreCase(selectedRole));
 
-        com.example.application.models.Users customer1 = new com.example.application.models.Users();
-        customer1.setId("USR004");
-        customer1.setUsername("budi.santoso");
-        customer1.setEmail("budi@gmail.com");
-        customer1.setRole("Customer");
-        customer1.setIs_active(1);
-        customer1.setCreated_at(Timestamp.valueOf("2024-02-15 16:45:00"));
+                    return matchesSearch && matchesRole;
+                })
+                .collect(Collectors.toList());
 
-        com.example.application.models.Users customer2 = new com.example.application.models.Users();
-        customer2.setId("USR005");
-        customer2.setUsername("sari.dewi");
-        customer2.setEmail("sari.dewi@yahoo.com");
-        customer2.setRole("Customer");
-        customer2.setIs_active(1);
-        customer2.setCreated_at(Timestamp.valueOf("2024-03-01 11:30:00"));
-
-        usersList.add(admin1);
-        usersList.add(kasir1);
-        usersList.add(kasir2);
-        usersList.add(customer1);
-        usersList.add(customer2);
+        grid.setItems(filteredUsersList);
     }
 
     private Component createHeader() {
+        // [Implementasi createHeader tetap sama]
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -119,7 +110,6 @@ public class User extends VerticalLayout {
                 .set("position", "relative")
                 .set("overflow", "hidden");
 
-        // Background pattern overlay
         Div pattern = new Div();
         pattern.getStyle()
                 .set("position", "absolute")
@@ -132,13 +122,11 @@ public class User extends VerticalLayout {
                 .set("opacity", "0.4");
         header.getElement().appendChild(pattern.getElement());
 
-        // Title section
         HorizontalLayout titleSection = new HorizontalLayout();
         titleSection.setAlignItems(FlexComponent.Alignment.CENTER);
         titleSection.setSpacing(true);
         titleSection.getStyle().set("position", "relative").set("z-index", "2");
 
-        // Icon container
         Div iconContainer = new Div();
         iconContainer.getStyle()
                 .set("background", "linear-gradient(135deg, #D7A449 0%, #FFD700 100%)")
@@ -164,7 +152,6 @@ public class User extends VerticalLayout {
 
         titleSection.add(iconContainer, title);
 
-        // Add user button
         Button addUserBtn = new Button("Tambah User", new Icon(VaadinIcon.PLUS));
         addUserBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addUserBtn.getStyle()
@@ -185,6 +172,7 @@ public class User extends VerticalLayout {
     }
 
     private Component createStatsCards() {
+        // [Implementasi createStatsCards tetap sama]
         HorizontalLayout statsLayout = new HorizontalLayout();
         statsLayout.setWidthFull();
         statsLayout.setSpacing(true);
@@ -194,8 +182,8 @@ public class User extends VerticalLayout {
 
         long totalUsers = usersList.size();
         long activeUsers = usersList.stream().filter(u -> u.getIs_active() == 1).count();
-        long adminCount = usersList.stream().filter(u -> "Admin".equals(u.getRole())).count();
-        long kasirCount = usersList.stream().filter(u -> "Kasir".equals(u.getRole())).count();
+        long adminCount = usersList.stream().filter(u -> "Admin".equalsIgnoreCase(u.getRole())).count();
+        long kasirCount = usersList.stream().filter(u -> "Kasir".equalsIgnoreCase(u.getRole())).count();
 
         statsLayout.add(
                 createStatCard("Total Users", String.valueOf(totalUsers), VaadinIcon.USERS, "#8B4513", "👥"),
@@ -208,6 +196,7 @@ public class User extends VerticalLayout {
     }
 
     private Component createStatCard(String title, String value, VaadinIcon icon, String color, String emoji) {
+        // [Implementasi createStatCard tetap sama]
         VerticalLayout card = new VerticalLayout();
         card.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
@@ -221,7 +210,6 @@ public class User extends VerticalLayout {
                 .set("cursor", "pointer")
                 .set("flex", "1");
 
-        // Decorative background element
         Div bgDecor = new Div();
         bgDecor.getStyle()
                 .set("position", "absolute")
@@ -234,7 +222,6 @@ public class User extends VerticalLayout {
                 .set("opacity", "0.6");
         card.add(bgDecor);
 
-        // Header with icon and emoji
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -271,7 +258,6 @@ public class User extends VerticalLayout {
 
         header.add(titleSection, iconContainer);
 
-        // Value with enhanced styling
         H2 valueH2 = new H2(value);
         valueH2.getStyle()
                 .set("margin", "15px 0 0 0")
@@ -290,6 +276,7 @@ public class User extends VerticalLayout {
     }
 
     private Component createUserGrid() {
+        // [Implementasi createUserGrid tetap sama]
         VerticalLayout gridContainer = new VerticalLayout();
         gridContainer.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
@@ -299,7 +286,6 @@ public class User extends VerticalLayout {
                 .set("border", "1px solid #f0f0f0")
                 .set("margin", "0 15px");
 
-        // Grid header
         HorizontalLayout gridHeader = new HorizontalLayout();
         gridHeader.setWidthFull();
         gridHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -313,38 +299,37 @@ public class User extends VerticalLayout {
                 .set("font-size", "20px")
                 .set("font-weight", "600");
 
-        // Search and filter section
         HorizontalLayout searchSection = new HorizontalLayout();
         searchSection.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        TextField searchField = new TextField();
+        searchField = new TextField();
         searchField.setPlaceholder("Cari user...");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.getStyle()
                 .set("border-radius", "12px")
                 .set("margin-right", "10px");
+        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+        searchField.addValueChangeListener(e -> filterUsers());
 
-        ComboBox<String> roleFilter = new ComboBox<>();
+        roleFilter = new ComboBox<>();
         roleFilter.setPlaceholder("Filter Role");
         roleFilter.setItems("Semua", "Admin", "Kasir", "Customer");
         roleFilter.setValue("Semua");
         roleFilter.getStyle().set("border-radius", "12px");
+        roleFilter.addValueChangeListener(e -> filterUsers());
 
         searchSection.add(searchField, roleFilter);
         gridHeader.add(gridTitle, searchSection);
 
-        // Initialize grid
-        grid = new Grid<>(com.example.application.models.Users.class, false);
+        grid = new Grid<>(Users.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.getStyle()
                 .set("border-radius", "12px")
                 .set("overflow", "hidden")
                 .set("box-shadow", "0 4px 15px rgba(0,0,0,0.1)");
 
-        // Configure columns
         configureGrid();
-
-        grid.setItems(usersList);
+        grid.setItems(filteredUsersList);
 
         gridContainer.add(gridHeader, grid);
         gridContainer.setPadding(false);
@@ -353,13 +338,11 @@ public class User extends VerticalLayout {
     }
 
     private void configureGrid() {
-        // User ID column with enhanced styling
-        grid.addColumn(com.example.application.models.Users::getId)
+        grid.addColumn(Users::getId)
                 .setHeader("User ID")
                 .setWidth("100px")
                 .setFlexGrow(0);
 
-        // Username column with icon
         grid.addColumn(new ComponentRenderer<>(user -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -375,15 +358,16 @@ public class User extends VerticalLayout {
             return layout;
         })).setHeader("Username").setWidth("200px");
 
-        // Email column
-        grid.addColumn(com.example.application.models.Users::getEmail)
+        grid.addColumn(Users::getEmail)
                 .setHeader("Email")
                 .setWidth("250px");
 
-        // Role column with badges
         grid.addColumn(new ComponentRenderer<>(user -> {
-            Span roleBadge = new Span(user.getRole());
-            String roleColor = getRoleColor(user.getRole());
+            String role = user.getRole() != null ? user.getRole() : "Unknown";
+            System.out.println("Debug - Rendering role: " + role);
+
+            Span roleBadge = new Span(role);
+            String roleColor = getRoleColor(role);
             roleBadge.getStyle()
                     .set("background", "linear-gradient(135deg, " + roleColor + ", " + roleColor + "dd)")
                     .set("color", "white")
@@ -391,11 +375,12 @@ public class User extends VerticalLayout {
                     .set("border-radius", "20px")
                     .set("font-size", "12px")
                     .set("font-weight", "600")
-                    .set("text-shadow", "0 1px 2px rgba(0,0,0,0.2)");
+                    .set("text-shadow", "0 1px 2px rgba(0,0,0,0.2)")
+                    .set("display", "inline-block")
+                    .set("min-width", "60px");
             return roleBadge;
         })).setHeader("Role").setWidth("120px");
 
-        // Status column with indicators
         grid.addColumn(new ComponentRenderer<>(user -> {
             HorizontalLayout statusLayout = new HorizontalLayout();
             statusLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -414,7 +399,6 @@ public class User extends VerticalLayout {
             return statusLayout;
         })).setHeader("Status").setWidth("120px");
 
-        // Created date column
         grid.addColumn(new ComponentRenderer<>(user -> {
             if (user.getCreated_at() != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -426,7 +410,6 @@ public class User extends VerticalLayout {
             return new Span("-");
         })).setHeader("Dibuat").setWidth("150px");
 
-        // Actions column
         grid.addColumn(new ComponentRenderer<>(user -> {
             HorizontalLayout actions = new HorizontalLayout();
             actions.setSpacing(false);
@@ -452,21 +435,25 @@ public class User extends VerticalLayout {
     }
 
     private String getRoleColor(String role) {
-        switch (role) {
-            case "Admin": return "#8B4513";
-            case "Kasir": return "#CD853F";
-            case "Customer": return "#D2691E";
+        if (role == null) {
+            return "#666";
+        }
+
+        switch (role.toLowerCase()) {
+            case "admin": return "#8B4513";
+            case "kasir": return "#CD853F";
+            case "customer": return "#D2691E";
             default: return "#666";
         }
     }
 
-    private void openUserDialog(com.example.application.models.Users user) {
+    private void openUserDialog(Users user) {
+        // [Implementasi openUserDialog tetap sama]
         Dialog dialog = new Dialog();
         dialog.setWidth("500px");
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(false);
 
-        // Dialog header
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -494,7 +481,6 @@ public class User extends VerticalLayout {
 
         header.add(titleLayout, closeBtn);
 
-        // Form layout
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
 
@@ -505,7 +491,6 @@ public class User extends VerticalLayout {
         ComboBox<String> roleField = new ComboBox<>("Role");
         ComboBox<String> statusField = new ComboBox<>("Status");
 
-        // Configure fields
         idField.setPlaceholder("Otomatis dibuat");
         idField.setReadOnly(true);
 
@@ -519,7 +504,6 @@ public class User extends VerticalLayout {
         statusField.setItems("Active", "Inactive");
         statusField.setPlaceholder("Pilih status");
 
-        // Fill form if editing
         if (user != null) {
             idField.setValue(user.getId());
             usernameField.setValue(user.getUsername());
@@ -532,7 +516,6 @@ public class User extends VerticalLayout {
 
         formLayout.add(idField, usernameField, emailField, passwordField, roleField, statusField);
 
-        // Button layout
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setWidthFull();
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -548,9 +531,46 @@ public class User extends VerticalLayout {
                 .set("border", "none");
 
         saveBtn.addClickListener(e -> {
-            // TODO: Implement save logic
+            try {
+                if (user == null) {
+                    Users newUser = new Users();
+                    newUser.setUsername(usernameField.getValue());
+                    newUser.setEmail(emailField.getValue());
+                    newUser.setPassword(passwordField.getValue());
+                    newUser.setRole(roleField.getValue());
+                    newUser.setIs_active(statusField.getValue().equals("Active") ? 1 : 0);
+                    newUser.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
+
+                    if (userDAO.createUsers(newUser)) {
+                        usersList = userDAO.getListUsers();
+                        filterUsers();
+                        Notification.show("User berhasil ditambahkan", 3000,
+                                        Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    }
+                } else {
+                    user.setUsername(usernameField.getValue());
+                    user.setEmail(emailField.getValue());
+                    if (!passwordField.getValue().isEmpty()) {
+                        user.setPassword(passwordField.getValue());
+                    }
+                    user.setRole(roleField.getValue());
+                    user.setIs_active(statusField.getValue().equals("Active") ? 1 : 0);
+
+                    if (userDAO.updateUsers(user)) {
+                        usersList = userDAO.getListUsers();
+                        filterUsers();
+                        Notification.show("User berhasil diperbarui", 3000,
+                                        Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    }
+                }
+            } catch (Exception ex) {
+                Notification.show("Gagal menyimpan user: " + ex.getMessage(), 5000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
             dialog.close();
-            // Refresh grid would go here
         });
 
         buttonLayout.add(cancelBtn, saveBtn);
@@ -564,7 +584,8 @@ public class User extends VerticalLayout {
         dialog.open();
     }
 
-    private void confirmDelete(com.example.application.models.Users user) {
+    private void confirmDelete(Users user) {
+        // [Implementasi confirmDelete tetap sama]
         ConfirmDialog confirmDialog = new ConfirmDialog();
         confirmDialog.setHeader("Konfirmasi Hapus");
         confirmDialog.setText("Apakah Anda yakin ingin menghapus user '" + user.getUsername() + "'?");
@@ -576,9 +597,19 @@ public class User extends VerticalLayout {
         confirmDialog.setConfirmButtonTheme("error primary");
 
         confirmDialog.addConfirmListener(e -> {
-            // TODO: Implement delete logic
-            usersList.remove(user);
-            grid.getDataProvider().refreshAll();
+            try {
+                if (userDAO.deleteUsers(user.getId())) {
+                    usersList = userDAO.getListUsers();
+                    filterUsers();
+                    Notification.show("User berhasil dihapus", 3000,
+                                    Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }
+            } catch (Exception ex) {
+                Notification.show("Gagal menghapus user: " + ex.getMessage(), 5000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
         });
 
         confirmDialog.open();
