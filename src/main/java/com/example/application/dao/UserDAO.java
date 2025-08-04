@@ -2,10 +2,10 @@ package com.example.application.dao;
 
 import com.example.application.models.Customer;
 import com.example.application.models.Users;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 
 import static com.example.application.Koneksi.koneksi.getConnection;
@@ -23,22 +23,22 @@ public class UserDAO {
         connection = getConnection();
     }
 
-    // -------------------- Users
     public ArrayList<Users> getListUsers() {
         listUsers = new ArrayList<>();
         try {
-            statement = connection.prepareStatement("SELECT * FROM Users",
+            statement = connection.prepareStatement("SELECT * FROM users",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Users = new Users();
-                Users.setId(resultSet.getString("id"));
+                Users.setId(String.valueOf(resultSet.getInt("id")));
                 Users.setUsername(resultSet.getString("username"));
                 Users.setEmail(resultSet.getString("email"));
                 Users.setPassword(resultSet.getString("password"));
-                Users.setRole(resultSet.getString("role"));
+                Users.setRole(convertRoleToDisplayFormat(resultSet.getString("role")));
                 Users.setIs_active(resultSet.getInt("is_active"));
                 Users.setCreated_at(resultSet.getTimestamp("created_at"));
+                listUsers.add(Users);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -46,20 +46,41 @@ public class UserDAO {
         return listUsers;
     }
 
+    private String convertRoleToDatabaseFormat(String role) {
+        if (role == null) return null;
+
+        switch (role.toLowerCase()) {
+            case "admin": return "admin";
+            case "kasir": return "cashier";
+            case "customer": return "customer";
+            default: return role.toLowerCase();
+        }
+    }
+
+    private String convertRoleToDisplayFormat(String role) {
+        if (role == null) return null;
+
+        switch (role.toLowerCase()) {
+            case "admin": return "Admin";
+            case "cashier": return "Kasir";
+            case "customer": return "Customer";
+            default: return role;
+        }
+    }
+
     public Users getUsers(String id) {
-        listUsers = new ArrayList<>();
         try {
-            statement = connection.prepareStatement("SELECT * FROM Users WHERE id = ?",
+            statement = connection.prepareStatement("SELECT * FROM users WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, id);
+            statement.setInt(1, Integer.parseInt(id));
             resultSet = statement.executeQuery();
-            while (resultSet.next()) {
+            if (resultSet.next()) {
                 Users = new Users();
-                Users.setId(resultSet.getString("id"));
+                Users.setId(String.valueOf(resultSet.getInt("id")));
                 Users.setUsername(resultSet.getString("username"));
                 Users.setEmail(resultSet.getString("email"));
                 Users.setPassword(resultSet.getString("password"));
-                Users.setRole(resultSet.getString("role"));
+                Users.setRole(convertRoleToDisplayFormat(resultSet.getString("role")));
                 Users.setIs_active(resultSet.getInt("is_active"));
                 Users.setCreated_at(resultSet.getTimestamp("created_at"));
             }
@@ -69,55 +90,79 @@ public class UserDAO {
         return Users;
     }
 
-    public boolean createUsers(Users Users) {
+    public boolean createUsers(Users user) {
         try {
-            statement = connection.prepareStatement("INSERT INTO Users (id, username, email, password, role, is_active" +
-                    " VALUES (?, ?, ?, ?, ?, ?",
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, Users.getId());
-            statement.setString(2, Users.getUsername());
-            statement.setString(3, Users.getEmail());
-            statement.setString(4, Users.getPassword());
-            statement.setString(5, Users.getRole());
-            statement.setInt(6, Users.getIs_active());
-            statement.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            String dbRole = convertRoleToDatabaseFormat(user.getRole());
+
+            statement = connection.prepareStatement(
+                    "INSERT INTO users (username, email, password, role, is_active, created_at) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+
+            statement.setString(1, user.getUsername());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPassword());
+            statement.setString(4, dbRole);
+            statement.setInt(5, user.getIs_active());
+            statement.setTimestamp(6, user.getCreated_at());
+
+            int affectedRows = statement.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        user.setId(String.valueOf(generatedKeys.getInt(1)));
+                    }
+                }
+                return true;
+            }
+        } catch (SQLException e) {
+            Notification.show("Gagal menyimpan user: " + e.getMessage(), 5000,
+                            Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return false;
         }
+        return false;
     }
 
-    public boolean updateUsers(Users Users) {
+    public boolean updateUsers(Users user) {
         try {
-            statement = connection.prepareStatement("UPDATE Users SET username = ?, email = ?, password = ?, role = ?, is_active" +
-                    "WHERE id = ?",
+            String dbRole = convertRoleToDatabaseFormat(user.getRole());
+
+            statement = connection.prepareStatement(
+                    "UPDATE users SET username = ?, email = ?, password = ?, role = ?, is_active = ? " +
+                            "WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, Users.getUsername());
-            statement.setString(2, Users.getEmail());
-            statement.setString(3, Users.getPassword());
-            statement.setString(4, Users.getRole());
-            statement.setInt(5, Users.getIs_active());
-            statement.setString(6, Users.getId());
-            statement.executeUpdate();
-            return true;
+
+            statement.setString(1, user.getUsername());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPassword());
+            statement.setString(4, dbRole);
+            statement.setInt(5, user.getIs_active());
+            statement.setInt(6, Integer.parseInt(user.getId()));
+
+            int affectedRows = statement.executeUpdate();
+            return affectedRows > 0;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Notification.show("Gagal mengupdate user: " + e.getMessage(), 5000,
+                            Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return false;
         }
     }
 
     public boolean deleteUsers(String id) {
         try {
-            statement = connection.prepareStatement("DELETE FROM Users WHERE id = ?",
+            statement = connection.prepareStatement("DELETE FROM users WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, id);
-            statement.executeUpdate();
-            return true;
+            statement.setInt(1, Integer.parseInt(id));
+            int affectedRows = statement.executeUpdate();
+            return affectedRows > 0;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    // -------------------- Customers
     public ArrayList<Customer> getListCustomer() {
         listCustomer = new ArrayList<>();
         try {
@@ -132,6 +177,7 @@ public class UserDAO {
                 Customer.setAddress(resultSet.getString("address"));
                 Customer.setPhone_number(resultSet.getString("phone_number"));
                 Customer.setBirth_date(resultSet.getDate("birth_date"));
+                listCustomer.add(Customer);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -209,5 +255,4 @@ public class UserDAO {
             throw new RuntimeException(e);
         }
     }
-
 }
