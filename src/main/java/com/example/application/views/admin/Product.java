@@ -34,6 +34,7 @@ import com.vaadin.flow.router.Route;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -140,11 +141,13 @@ public class Product extends VerticalLayout {
                 .set("padding", "20px 25px")
                 .set("margin", "0 15px 20px 15px");
 
-        // Search field
+        // Search field dengan fitur lebih lengkap
         TextField searchField = new TextField();
         searchField.setPlaceholder("Cari produk...");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-        searchField.addValueChangeListener(e -> filterProducts(e.getValue()));
+        searchField.setClearButtonVisible(true);
+        searchField.setWidth("300px");
+        searchField.addValueChangeListener(e -> searchProducts(e.getValue()));
 
         // Add product button
         Button addButton = new Button("Tambah Produk", new Icon(VaadinIcon.PLUS));
@@ -153,6 +156,26 @@ public class Product extends VerticalLayout {
 
         actionBar.add(searchField, addButton);
         return actionBar;
+    }
+
+    private void searchProducts(String searchTerm) {
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            grid.setItems(products);
+            return;
+        }
+
+        String[] keywords = searchTerm.toLowerCase().split("\\s+");
+
+        List<Products> filteredProducts = products.stream()
+                .filter(product ->
+                        Arrays.stream(keywords).allMatch(keyword ->
+                                String.valueOf(product.getId()).contains(keyword) ||
+                                        product.getName().toLowerCase().contains(keyword)
+                        )
+                )
+                .toList();
+
+        grid.setItems(filteredProducts);
     }
 
     private void filterProducts(String searchTerm) {
