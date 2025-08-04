@@ -3,116 +3,141 @@ package com.example.application.dao;
 import com.example.application.Koneksi.koneksi;
 import com.example.application.models.Promo;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 
 public class PromoDAO {
-    Connection connection;
-    PreparedStatement statement;
-    ResultSet resultSet;
-    ArrayList<Promo> promoArrayList;
-    Promo promo;
+    private Connection connection;
 
     public PromoDAO() {
         connection = koneksi.getConnection();
     }
 
     public ArrayList<Promo> getListPromo() {
-        promoArrayList = new ArrayList<>();
-        try {
-            statement = connection.prepareStatement("SELECT * FROM Promo",
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                promo = new Promo();
-                promo.setId(resultSet.getString("id"));
-                promo.setName(resultSet.getString("name"));
-                promo.setDescription(resultSet.getString("description"));
-                promo.setDiscount_value(resultSet.getDouble("discount_value"));
-                promo.setMin_purchase(resultSet.getDouble("min_purchase"));
-                promo.setStart_date(resultSet.getDate("start_date"));
-                promo.setEnd_date(resultSet.getDate("end_date"));
-                promoArrayList.add(promo);
+        ArrayList<Promo> promoList = new ArrayList<>();
+        String query = "SELECT * FROM promo";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Promo promo = new Promo();
+                promo.setId(rs.getString("id"));
+                promo.setName(rs.getString("name"));
+                promo.setCode(rs.getString("code"));
+                promo.setDescription(rs.getString("description"));
+                promo.setDiscount_value(rs.getDouble("discount_value"));
+                promo.setMin_purchase(rs.getDouble("min_purchase"));
+                promo.setStart_date(rs.getDate("start_date"));
+                promo.setEnd_date(rs.getDate("end_date"));
+                promoList.add(promo);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return promoArrayList;
+        return promoList;
     }
 
-    public Promo getPromo(String id) {
-        promoArrayList = new ArrayList<>();
-        try {
-            statement = connection.prepareStatement("SELECT * FROM Promo WHERE id = ?",
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, id);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                promo = new Promo();
-                promo.setId(resultSet.getString("id"));
-                promo.setName(resultSet.getString("name"));
-                promo.setDescription(resultSet.getString("description"));
-                promo.setDiscount_value(resultSet.getDouble("discount_value"));
-                promo.setMin_purchase(resultSet.getDouble("min_purchase"));
-                promo.setStart_date(resultSet.getDate("start_date"));
-                promo.setEnd_date(resultSet.getDate("end_date"));
+    public String generateIdPromo() {
+        String prefix = "PRM";
+        int nextNumber = 1;
+
+        String query = "SELECT id FROM promo ORDER BY id DESC LIMIT 1";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                String lastId = rs.getString("id"); // contoh: PRM007
+                String numberPart = lastId.replace(prefix, ""); // hasil: 007
+                nextNumber = Integer.parseInt(numberPart) + 1;  // hasil: 8
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return String.format("%s%03d", prefix, nextNumber); // PRM008
+    }
+
+
+    public Promo getPromo(String id) {
+        String query = "SELECT * FROM promo WHERE id = ?";
+        Promo promo = null;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    promo = new Promo();
+                    promo.setId(rs.getString("id"));
+                    promo.setName(rs.getString("name"));
+                    promo.setCode(rs.getString("code"));
+                    promo.setDescription(rs.getString("description"));
+                    promo.setDiscount_value(rs.getDouble("discount_value"));
+                    promo.setMin_purchase(rs.getDouble("min_purchase"));
+                    promo.setStart_date(rs.getDate("start_date"));
+                    promo.setEnd_date(rs.getDate("end_date"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return promo;
     }
 
     public boolean createPromo(Promo promo) {
-        try {
-            statement = connection.prepareStatement("INSERT INTO Promo (id, name, description, discount_value, min_purchase, start_date, end_date",
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, promo.getId());
-            statement.setString(2, promo.getName());
-            statement.setString(3, promo.getDescription());
-            statement.setDouble(4, promo.getDiscount_value());
-            statement.setDouble(5, promo.getMin_purchase());
-            statement.setDate(6, promo.getStart_date());
-            statement.setDate(7, promo.getEnd_date());
-            statement.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        String query = "INSERT INTO promo (id, name, code, description, discount_value, min_purchase, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        if (promo.getId() == null || promo.getId().isEmpty()) {
+            promo.setId(generateIdPromo());
+        }
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, promo.getId());
+            stmt.setString(2, promo.getName());
+            stmt.setString(3, promo.getCode());
+            stmt.setString(4, promo.getDescription());
+            stmt.setDouble(5, promo.getDiscount_value());
+            stmt.setDouble(6, promo.getMin_purchase());
+            stmt.setDate(7, promo.getStart_date());
+            stmt.setDate(8, promo.getEnd_date());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
+
     public boolean updatePromo(Promo promo) {
-        try {
-            statement = connection.prepareStatement("UPDATE Promo SET name = ?, description = ?, discount_value = ?, min_purchase = ?, start_date = ?, end_date" +
-                    "WHERE id = ?",
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, promo.getName());
-            statement.setString(2, promo.getDescription());
-            statement.setDouble(3, promo.getDiscount_value());
-            statement.setDouble(4, promo.getMin_purchase());
-            statement.setDate(5, promo.getStart_date());
-            statement.setDate(6, promo.getEnd_date());
-            statement.setString(7, promo.getId());
-            statement.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        String query = "UPDATE promo SET name = ?, code = ?, description = ?, discount_value = ?, min_purchase = ?, start_date = ?, end_date = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, promo.getName());
+            stmt.setString(2, promo.getCode());
+            stmt.setString(3, promo.getDescription());
+            stmt.setDouble(4, promo.getDiscount_value());
+            stmt.setDouble(5, promo.getMin_purchase());
+            stmt.setDate(6, promo.getStart_date());
+            stmt.setDate(7, promo.getEnd_date());
+            stmt.setString(8, promo.getId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
     public boolean deletePromo(String id) {
-        try {
-            statement = connection.prepareStatement("DELETE FROM Promo WHERE id = ?",
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setString(1, id);
-            statement.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        String query = "DELETE FROM promo WHERE id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }
