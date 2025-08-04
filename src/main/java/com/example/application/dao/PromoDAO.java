@@ -109,11 +109,11 @@ public class PromoDAO {
         }
     }
 
-
     public boolean updatePromo(Promo promo) {
-        String query = "UPDATE promo SET name = ?, code = ?, description = ?, discount_value = ?, min_purchase = ?, start_date = ?, end_date = ? WHERE id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        try {
+            // Pastikan query UPDATE benar dan menggunakan ID yang tepat
+            String query = "UPDATE promo SET name = ?, code = ?, description = ?, discount_value = ?, min_purchase = ?, start_date = ?, end_date = ? WHERE id = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
             stmt.setString(1, promo.getName());
             stmt.setString(2, promo.getCode());
             stmt.setString(3, promo.getDescription());
@@ -121,7 +121,7 @@ public class PromoDAO {
             stmt.setDouble(5, promo.getMin_purchase());
             stmt.setDate(6, promo.getStart_date());
             stmt.setDate(7, promo.getEnd_date());
-            stmt.setString(8, promo.getId());
+            stmt.setString(8, promo.getId()); // Pastikan ID benar
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

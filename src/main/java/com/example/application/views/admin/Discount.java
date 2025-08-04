@@ -23,6 +23,7 @@ import com.vaadin.flow.router.Route;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Random;
 
 @PageTitle("Discount Management - Kopi.in")
 @Route(value = "admin/discount", layout = MainLayout.class)
@@ -86,7 +87,8 @@ public class Discount extends VerticalLayout {
 
     private void refreshPromoList() {
         promoList = promoDAO.getListPromo();
-        grid.setItems(promoList);
+        grid.setItems(promoList); // Pastikan ini memanggil ulang data dari database
+        grid.getDataProvider().refreshAll();
     }
 
     private void setupUIComponents() {
@@ -320,9 +322,17 @@ public class Discount extends VerticalLayout {
         if (promo.getStart_date() == null || promo.getEnd_date() == null) {
             return false;
         }
+
         LocalDate now = LocalDate.now();
         LocalDate startDate = promo.getStart_date().toLocalDate();
         LocalDate endDate = promo.getEnd_date().toLocalDate();
+
+        // Debugging - tampilkan nilai tanggal
+        System.out.println("Checking promo: " + promo.getName() +
+                " | Start: " + startDate +
+                " | End: " + endDate +
+                " | Now: " + now);
+
         return !now.isBefore(startDate) && !now.isAfter(endDate);
     }
 
@@ -600,7 +610,8 @@ public class Discount extends VerticalLayout {
 
     private void addNewPromo() {
         Promo newPromo = new Promo();
-        newPromo.setId(String.valueOf(System.currentTimeMillis())); // Gunakan timestamp atau UUID
+        // Generate ID sesuai format database
+        newPromo.setId("PR-" + String.format("%05d", new Random().nextInt(99999)));
         newPromo.setName(nameField.getValue());
         newPromo.setCode(codeField.getValue());
         newPromo.setDescription(descriptionField.getValue());
