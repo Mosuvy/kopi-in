@@ -4,10 +4,10 @@ import com.example.application.models.Customer;
 import com.example.application.models.Users;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
-
 import static com.example.application.Koneksi.koneksi.getConnection;
 
 public class UserDAO {
@@ -57,31 +57,6 @@ public class UserDAO {
         }
     }
 
-    public Users login(String username, String password) {
-        Users user = null;
-        try {
-            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, username);
-            statement.setString(2, password);
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                user = new Users();
-                user.setId(String.valueOf(resultSet.getInt("id")));
-                user.setUsername(resultSet.getString("username"));
-                user.setEmail(resultSet.getString("email"));
-                user.setPassword(resultSet.getString("password"));
-                user.setRole(convertRoleToDisplayFormat(resultSet.getString("role")));
-                user.setIs_active(resultSet.getInt("is_active"));
-                user.setCreated_at(resultSet.getTimestamp("created_at"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return user;
-    }
-
-
     private String convertRoleToDisplayFormat(String role) {
         if (role == null) return null;
 
@@ -91,6 +66,33 @@ public class UserDAO {
             case "customer": return "Customer";
             default: return role;
         }
+    }
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean validatePassword(String password) {
+        if (password.length() < 8) return false;
+        if (!password.matches(".*[A-Z].*")) return false;
+        if (!password.matches(".*[a-z].*")) return false;
+        if (!password.matches(".*\\d.*")) return false;
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) return false;
+        return true;
     }
 
     public Users getUsers(String id) {
@@ -117,7 +119,15 @@ public class UserDAO {
 
     public boolean createUsers(Users user) {
         try {
+            if (!validatePassword(user.getPassword())) {
+                Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
+                                5000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return false;
+            }
+
             String dbRole = convertRoleToDatabaseFormat(user.getRole());
+            String hashedPassword = hashPassword(user.getPassword());
 
             statement = connection.prepareStatement(
                     "INSERT INTO users (username, email, password, role, is_active, created_at) " +
@@ -126,7 +136,7 @@ public class UserDAO {
 
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
-            statement.setString(3, user.getPassword());
+            statement.setString(3, hashedPassword);
             statement.setString(4, dbRole);
             statement.setInt(5, user.getIs_active());
             statement.setTimestamp(6, user.getCreated_at());
@@ -153,6 +163,20 @@ public class UserDAO {
     public boolean updateUsers(Users user) {
         try {
             String dbRole = convertRoleToDatabaseFormat(user.getRole());
+            String passwordToUpdate = user.getPassword();
+
+            if (!passwordToUpdate.isEmpty()) {
+                if (!validatePassword(passwordToUpdate)) {
+                    Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
+                                    5000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    return false;
+                }
+                passwordToUpdate = hashPassword(passwordToUpdate);
+            } else {
+                Users existingUser = getUsers(user.getId());
+                passwordToUpdate = existingUser.getPassword();
+            }
 
             statement = connection.prepareStatement(
                     "UPDATE users SET username = ?, email = ?, password = ?, role = ?, is_active = ? " +
@@ -161,7 +185,7 @@ public class UserDAO {
 
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
-            statement.setString(3, user.getPassword());
+            statement.setString(3, passwordToUpdate);
             statement.setString(4, dbRole);
             statement.setInt(5, user.getIs_active());
             statement.setInt(6, Integer.parseInt(user.getId()));
@@ -186,6 +210,31 @@ public class UserDAO {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Users login(String username, String password) {
+        Users user = null;
+        try {
+            String hashedPassword = hashPassword(password);
+            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, username);
+            statement.setString(2, hashedPassword);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                user = new Users();
+                user.setId(String.valueOf(resultSet.getInt("id")));
+                user.setUsername(resultSet.getString("username"));
+                user.setEmail(resultSet.getString("email"));
+                user.setPassword(resultSet.getString("password"));
+                user.setRole(convertRoleToDisplayFormat(resultSet.getString("role")));
+                user.setIs_active(resultSet.getInt("is_active"));
+                user.setCreated_at(resultSet.getTimestamp("created_at"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user;
     }
 
     public ArrayList<Customer> getListCustomer() {
@@ -279,5 +328,29 @@ public class UserDAO {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    public Users getUserByUsername(String username) {
+        Users user = null;
+        try {
+            String sql = "SELECT * FROM users WHERE username = ?";
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, username);
+            resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                user = new Users();
+                user.setId(String.valueOf(resultSet.getInt("id")));
+                user.setUsername(resultSet.getString("username"));
+                user.setEmail(resultSet.getString("email"));
+                user.setPassword(resultSet.getString("password"));
+                user.setRole(resultSet.getString("role"));
+                user.setIs_active(resultSet.getInt("is_active"));
+                user.setCreated_at(resultSet.getTimestamp("created_at"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return user;
     }
 }
