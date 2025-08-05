@@ -351,7 +351,7 @@ public class Dashboard extends VerticalLayout {
                 .set("padding", "0 15px")
                 .set("margin-bottom", "25px");
 
-        // Sales Chart dengan ukuran yang diperbesar
+        // Sales Chart dengan responsivitas yang diperbaiki
         VerticalLayout salesChartContainer = new VerticalLayout();
         salesChartContainer.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
@@ -362,7 +362,8 @@ public class Dashboard extends VerticalLayout {
                 .set("flex", "2")
                 .set("position", "relative")
                 .set("overflow", "hidden")
-                .set("min-height", "450px"); // Diperbesar tingginya
+                .set("min-height", "400px")
+                .set("max-width", "100%"); // Penting untuk responsivitas
 
         // Header section
         HorizontalLayout chartHeader = new HorizontalLayout();
@@ -389,11 +390,11 @@ public class Dashboard extends VerticalLayout {
 
         chartHeader.add(salesTitle, trendIndicator);
 
-        Component salesChart = createAnimatedSalesChart();
+        Component salesChart = createResponsiveSalesChart();
         salesChartContainer.add(chartHeader, salesChart);
         salesChartContainer.setPadding(false);
 
-        // Menu populer dengan style yang ditingkatkan dan diperbesar
+        // Menu populer dengan style yang ditingkatkan dan responsif
         VerticalLayout menuChartContainer = new VerticalLayout();
         menuChartContainer.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
@@ -402,7 +403,8 @@ public class Dashboard extends VerticalLayout {
                 .set("box-shadow", "0 10px 30px rgba(0,0,0,0.1)")
                 .set("border", "1px solid #f0f0f0")
                 .set("flex", "1")
-                .set("min-height", "450px"); // Diperbesar tingginya
+                .set("min-height", "400px")
+                .set("min-width", "300px"); // Minimum width untuk menu chart
 
         H3 menuTitle = new H3("Menu Populer Hari Ini");
         menuTitle.getStyle()
@@ -425,146 +427,174 @@ public class Dashboard extends VerticalLayout {
         feedbackSection.getStyle()
                 .set("padding", "0 15px 25px 15px");
 
-        // Feedback card container
+        // Simple footer-style feedback container
         Div feedbackCard = new Div();
         feedbackCard.getStyle()
-                .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
-                .set("border-radius", "20px")
+                .set("background", "linear-gradient(135deg, #4E342E 0%, #795548 50%, #8B4513 100%)")
+                .set("color", "white")
+                .set("border-radius", "15px")
                 .set("padding", "30px")
-                .set("box-shadow", "0 10px 30px rgba(0,0,0,0.1)")
-                .set("border", "1px solid #f0f0f0")
+                .set("box-shadow", "0 8px 25px rgba(0,0,0,0.15)")
                 .set("position", "relative")
                 .set("overflow", "hidden");
 
-        // Background decoration
-        Div bgDecor = new Div();
-        bgDecor.getStyle()
+        // Subtle background pattern
+        Div pattern = new Div();
+        pattern.getStyle()
                 .set("position", "absolute")
-                .set("top", "-50px")
-                .set("right", "-50px")
-                .set("width", "150px")
-                .set("height", "150px")
-                .set("background", "linear-gradient(135deg, #8B451320, #8B451310)")
-                .set("border-radius", "50%")
-                .set("opacity", "0.6");
-        feedbackCard.add(bgDecor);
+                .set("top", "0")
+                .set("left", "0")
+                .set("width", "100%")
+                .set("height", "100%")
+                .set("background-image", "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 1px, transparent 1px)")
+                .set("background-size", "30px 30px")
+                .set("opacity", "0.3");
+        feedbackCard.add(pattern);
 
-        HorizontalLayout feedbackHeader = new HorizontalLayout();
-        feedbackHeader.setWidthFull();
-        feedbackHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        feedbackHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        feedbackHeader.getStyle()
+        // Main content layout
+        HorizontalLayout mainContent = new HorizontalLayout();
+        mainContent.setWidthFull();
+        mainContent.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        mainContent.setAlignItems(FlexComponent.Alignment.CENTER);
+        mainContent.getStyle()
                 .set("position", "relative")
                 .set("z-index", "2")
-                .set("margin-bottom", "20px");
+                .set("flex-wrap", "wrap")
+                .set("gap", "20px");
 
-        // Title section with icon
+        // Left section - Title and description
+        VerticalLayout leftSection = new VerticalLayout();
+        leftSection.setPadding(false);
+        leftSection.setSpacing(false);
+        leftSection.getStyle().set("flex", "1").set("min-width", "300px");
+
+        // Title with icon
         HorizontalLayout titleSection = new HorizontalLayout();
         titleSection.setAlignItems(FlexComponent.Alignment.CENTER);
         titleSection.setSpacing(true);
-
-        Div iconContainer = new Div();
-        iconContainer.getStyle()
-                .set("background", "linear-gradient(135deg, #8B4513, #CD853F)")
-                .set("padding", "12px")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 4px 15px rgba(139, 69, 19, 0.4)")
-                .set("margin-right", "10px");
+        titleSection.getStyle().set("margin-bottom", "10px");
 
         Icon feedbackIcon = new Icon(VaadinIcon.COMMENT);
         feedbackIcon.setSize("24px");
-        feedbackIcon.getStyle().set("color", "white");
-        iconContainer.add(feedbackIcon);
+        feedbackIcon.getStyle().set("color", "#FFD700");
 
         H3 feedbackTitle = new H3("Customer Feedback");
         feedbackTitle.getStyle()
                 .set("margin", "0")
-                .set("color", "#4E342E")
-                .set("font-size", "20px")
+                .set("color", "white")
+                .set("font-size", "22px")
                 .set("font-weight", "600");
 
-        titleSection.add(iconContainer, feedbackTitle);
-
-        // Feedback stats
-        HorizontalLayout statsSection = new HorizontalLayout();
-        statsSection.setAlignItems(FlexComponent.Alignment.CENTER);
-        statsSection.setSpacing(true);
-
-        long unreadCount = feedbackList.stream().filter(f -> "unread".equals(f.getStatus())).count();
-
-        Span totalFeedback = new Span("Total: " + feedbackList.size());
-        totalFeedback.getStyle()
-                .set("background", "linear-gradient(135deg, #E3F2FD, #F3E5F5)")
-                .set("color", "#1976D2")
-                .set("padding", "6px 12px")
-                .set("border-radius", "15px")
-                .set("font-size", "12px")
-                .set("font-weight", "600")
-                .set("margin-right", "8px");
-
-        Span unreadFeedback = new Span("Unread: " + unreadCount);
-        unreadFeedback.getStyle()
-                .set("background", "linear-gradient(135deg, #FFF3E0, #FFE0B2)")
-                .set("color", "#F57C00")
-                .set("padding", "6px 12px")
-                .set("border-radius", "15px")
-                .set("font-size", "12px")
-                .set("font-weight", "600");
-
-        statsSection.add(totalFeedback, unreadFeedback);
-
-        feedbackHeader.add(titleSection, statsSection);
+        titleSection.add(feedbackIcon, feedbackTitle);
 
         // Description
-        Span description = new Span("Lihat dan kelola semua feedback dari customer untuk meningkatkan kualitas layanan.");
+        Span description = new Span("Lihat dan kelola semua feedback dari customer untuk meningkatkan kualitas layanan kopi.in");
         description.getStyle()
-                .set("color", "#666")
+                .set("color", "#F5DEB3")
                 .set("font-size", "14px")
-                .set("margin-bottom", "25px")
-                .set("line-height", "1.5")
-                .set("position", "relative")
-                .set("z-index", "2");
+                .set("line-height", "1.5");
+
+        leftSection.add(titleSection, description);
+
+        // Right section - Stats and button
+        HorizontalLayout rightSection = new HorizontalLayout();
+        rightSection.setAlignItems(FlexComponent.Alignment.CENTER);
+        rightSection.setSpacing(true);
+        rightSection.getStyle()
+                .set("flex-wrap", "wrap")
+                .set("gap", "20px");
+
+        // Stats container with improved layout
+        long unreadCount = feedbackList.stream().filter(f -> "unread".equals(f.getStatus())).count();
+
+        VerticalLayout statsContainer = new VerticalLayout();
+        statsContainer.setPadding(false);
+        statsContainer.setSpacing(false);
+        statsContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        statsContainer.getStyle()
+                .set("background", "rgba(255, 255, 255, 0.1)")
+                .set("border-radius", "12px")
+                .set("padding", "15px")
+                .set("min-width", "120px");
+
+        // Total feedback count
+        Span totalText = new Span(String.valueOf(feedbackList.size()));
+        totalText.getStyle()
+                .set("font-size", "28px")
+                .set("font-weight", "bold")
+                .set("color", "#FFD700")
+                .set("line-height", "1");
+
+        Span totalLabel = new Span("Total Feedback");
+        totalLabel.getStyle()
+                .set("font-size", "12px")
+                .set("color", "#F5DEB3")
+                .set("text-align", "center")
+                .set("margin-top", "4px");
+
+        // Unread indicator with better styling
+        if (unreadCount > 0) {
+            HorizontalLayout unreadLayout = new HorizontalLayout();
+            unreadLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+            unreadLayout.setSpacing(false);
+            unreadLayout.getStyle()
+                    .set("margin-top", "8px")
+                    .set("justify-content", "center");
+
+            Div unreadBadge = new Div();
+            unreadBadge.getStyle()
+                    .set("background", "linear-gradient(135deg, #FF6B35, #FF8C42)")
+                    .set("color", "white")
+                    .set("padding", "4px 8px")
+                    .set("border-radius", "12px")
+                    .set("font-size", "11px")
+                    .set("font-weight", "600")
+                    .set("box-shadow", "0 2px 8px rgba(255, 107, 53, 0.3)")
+                    .set("text-align", "center")
+                    .set("min-width", "60px");
+
+            unreadBadge.setText(unreadCount + " belum dibaca");
+            unreadLayout.add(unreadBadge);
+
+            statsContainer.add(totalText, totalLabel, unreadLayout);
+        } else {
+            statsContainer.add(totalText, totalLabel);
+        }
 
         // View feedback button
-        Button viewFeedbackBtn = new Button("Lihat Semua Feedback", new Icon(VaadinIcon.EYE));
+        Button viewFeedbackBtn = new Button("Lihat Feedback", new Icon(VaadinIcon.EYE));
         viewFeedbackBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         viewFeedbackBtn.getStyle()
-                .set("background", "linear-gradient(135deg, #8B4513, #CD853F)")
+                .set("background", "linear-gradient(135deg, #D7A449, #FFD700)")
+                .set("color", "#4E342E")
                 .set("border", "none")
                 .set("border-radius", "12px")
-                .set("padding", "12px 24px")
+                .set("padding", "12px 20px")
                 .set("font-weight", "600")
                 .set("font-size", "14px")
-                .set("box-shadow", "0 6px 20px rgba(139, 69, 19, 0.3)")
+                .set("box-shadow", "0 4px 15px rgba(215, 164, 73, 0.4)")
                 .set("cursor", "pointer")
                 .set("transition", "all 0.3s ease")
-                .set("position", "relative")
-                .set("z-index", "2");
+                .set("min-width", "150px");
 
         viewFeedbackBtn.addClickListener(e -> openFeedbackModal());
 
-        // Hover effect
+        // Hover effects
         viewFeedbackBtn.getElement().addEventListener("mouseenter", e -> {
             viewFeedbackBtn.getStyle()
                     .set("transform", "translateY(-2px)")
-                    .set("box-shadow", "0 8px 25px rgba(139, 69, 19, 0.4)");
+                    .set("box-shadow", "0 6px 20px rgba(215, 164, 73, 0.5)");
         });
 
         viewFeedbackBtn.getElement().addEventListener("mouseleave", e -> {
             viewFeedbackBtn.getStyle()
                     .set("transform", "translateY(0px)")
-                    .set("box-shadow", "0 6px 20px rgba(139, 69, 19, 0.3)");
+                    .set("box-shadow", "0 4px 15px rgba(215, 164, 73, 0.4)");
         });
 
-        VerticalLayout content = new VerticalLayout();
-        content.add(feedbackHeader, description, viewFeedbackBtn);
-        content.setPadding(false);
-        content.setSpacing(false);
-        content.getStyle()
-                .set("position", "relative")
-                .set("z-index", "2");
-
-        feedbackCard.add(content);
+        rightSection.add(statsContainer, viewFeedbackBtn);
+        mainContent.add(leftSection, rightSection);
+        feedbackCard.add(mainContent);
         feedbackSection.add(feedbackCard);
         feedbackSection.setPadding(false);
 
@@ -739,7 +769,7 @@ public class Dashboard extends VerticalLayout {
         dialog.open();
     }
 
-    private Component createAnimatedSalesChart() {
+    private Component createResponsiveSalesChart() {
         VerticalLayout chartContainer = new VerticalLayout();
         chartContainer.setPadding(false);
         chartContainer.setSpacing(false);
@@ -748,14 +778,14 @@ public class Dashboard extends VerticalLayout {
         // Stats summary
         HorizontalLayout statsRow = createChartStats();
 
-        // Custom bar chart dengan animasi yang lebih bagus
-        Component customChart = createCustomSalesChart();
+        // Custom bar chart dengan responsivitas yang diperbaiki
+        Component customChart = createResponsiveCustomSalesChart();
 
         chartContainer.add(statsRow, customChart);
         return chartContainer;
     }
 
-    private Component createCustomSalesChart() {
+    private Component createResponsiveCustomSalesChart() {
         VerticalLayout chartContainer = new VerticalLayout();
         chartContainer.setPadding(false);
         chartContainer.setSpacing(false);
@@ -766,41 +796,42 @@ public class Dashboard extends VerticalLayout {
         double[] sales = {1.2, 1.45, 1.8, 2.1, 2.45, 2.8, 1.9}; // dalam jutaan
         double maxSales = 2.8;
 
-        // Chart area dengan gradient background - diperbesar
+        // Chart area dengan responsive design
         Div chartArea = new Div();
         chartArea.getStyle()
                 .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
                 .set("border-radius", "15px")
-                .set("padding", "25px")
+                .set("padding", "20px")
                 .set("position", "relative")
-                .set("min-width", "680px")
-                .set("min-height", "320px") // Diperbesar dari 280px
+                .set("width", "95%")
+                .set("height", "300px") // Fixed height untuk konsistensi
                 .set("box-shadow", "inset 0 2px 8px rgba(0,0,0,0.05)")
-                .set("flex", "1");
+                .set("overflow", "hidden");
 
         // Grid lines background
         Div gridContainer = new Div();
         gridContainer.getStyle()
                 .set("position", "absolute")
-                .set("top", "25px")
-                .set("left", "25px")
-                .set("right", "25px")
-                .set("bottom", "25px")
+                .set("top", "20px")
+                .set("left", "20px")
+                .set("right", "20px")
+                .set("bottom", "20px")
                 .set("background-image", "linear-gradient(to top, rgba(139,69,19,0.1) 1px, transparent 1px)")
-                .set("background-size", "100% 40px")
+                .set("background-size", "100% 35px")
                 .set("border-radius", "8px");
         chartArea.add(gridContainer);
 
-        // Bars container
+        // Bars container dengan flex layout responsif
         HorizontalLayout barsContainer = new HorizontalLayout();
         barsContainer.setWidthFull();
         barsContainer.setAlignItems(FlexComponent.Alignment.END);
         barsContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         barsContainer.getStyle()
-                .set("height", "260px") // Diperbesar dari 220px
-                .set("padding", "20px 10px")
+                .set("height", "240px") // Fixed height untuk area bar
+                .set("padding", "15px")
                 .set("position", "relative")
-                .set("z-index", "2");
+                .set("z-index", "2")
+                .set("gap", "8px"); // Consistent gap antara bars
 
         for (int i = 0; i < days.length; i++) {
             VerticalLayout barColumn = new VerticalLayout();
@@ -814,19 +845,21 @@ public class Dashboard extends VerticalLayout {
                     .set("cursor", "pointer")
                     .set("display", "flex")
                     .set("flex-direction", "column")
-                    .set("justify-content", "flex-end");
+                    .set("justify-content", "flex-end")
+                    .set("min-width", "0") // Important untuk flex shrinking
+                    .set("max-width", "none"); // Allow flexible width
 
             // Value label di atas bar
             Span valueLabel = new Span("Rp " + sales[i] + "M");
             valueLabel.getStyle()
-                    .set("font-size", "11px")
+                    .set("font-size", "10px")
                     .set("font-weight", "600")
                     .set("color", "#8B4513")
                     .set("background", "white")
-                    .set("padding", "4px 8px")
-                    .set("border-radius", "8px")
+                    .set("padding", "3px 6px")
+                    .set("border-radius", "6px")
                     .set("box-shadow", "0 2px 6px rgba(0,0,0,0.1)")
-                    .set("margin-bottom", "8px")
+                    .set("margin-bottom", "6px")
                     .set("opacity", "0")
                     .set("transform", "translateY(-10px)")
                     .set("transition", "all 0.3s ease")
@@ -834,29 +867,32 @@ public class Dashboard extends VerticalLayout {
                     .set("top", "0")
                     .set("left", "50%")
                     .set("transform", "translateX(-50%) translateY(-10px)")
-                    .set("z-index", "10");
+                    .set("z-index", "10")
+                    .set("white-space", "nowrap"); // Prevent text wrapping
 
-            // Bar area container - untuk memastikan animasi dari bawah
+            // Bar area container - responsive sizing
             Div barAreaContainer = new Div();
-            double barHeight = (sales[i] / maxSales) * 180; // max height 180px (diperbesar)
+            double barHeight = (sales[i] / maxSales) * 160; // Reduced max height for better fit
             barAreaContainer.getStyle()
-                    .set("width", "40px") // Diperbesar dari 35px
+                    .set("width", "calc(100% - 8px)") // Responsive width dengan margin
+                    .set("min-width", "25px") // Minimum width
+                    .set("max-width", "40px") // Maximum width
                     .set("height", barHeight + "px")
                     .set("position", "relative")
                     .set("display", "flex")
                     .set("align-items", "flex-end")
-                    .set("margin-bottom", "10px");
+                    .set("margin", "0 auto 8px auto"); // Center and add bottom margin
 
-            // Bar yang sebenarnya - yang akan di-animate
+            // Bar yang sebenarnya - responsive
             Div barContainer = new Div();
             barContainer.getStyle()
                     .set("width", "100%")
                     .set("height", "0%")
                     .set("background", "linear-gradient(to top, #8B4513 0%, #CD853F 50%, #DEB887 100%)")
-                    .set("border-radius", "8px 8px 4px 4px")
+                    .set("border-radius", "6px 6px 3px 3px")
                     .set("position", "relative")
                     .set("transition", "height 1.2s cubic-bezier(0.4, 0, 0.2, 1)")
-                    .set("box-shadow", "0 4px 15px rgba(139, 69, 19, 0.3)")
+                    .set("box-shadow", "0 3px 12px rgba(139, 69, 19, 0.3)")
                     .set("overflow", "hidden")
                     .set("transform-origin", "bottom");
 
@@ -874,29 +910,30 @@ public class Dashboard extends VerticalLayout {
 
             barAreaContainer.add(barContainer);
 
-            // Day label - tetap di bawah
+            // Day label - responsive sizing
             Span dayLabel = new Span(days[i]);
             dayLabel.getStyle()
-                    .set("font-size", "12px")
+                    .set("font-size", "11px")
                     .set("font-weight", "600")
                     .set("color", "#8B4513")
                     .set("background", "white")
-                    .set("padding", "6px 10px")
-                    .set("border-radius", "10px")
-                    .set("box-shadow", "0 2px 8px rgba(0,0,0,0.1)")
+                    .set("padding", "4px 6px")
+                    .set("border-radius", "8px")
+                    .set("box-shadow", "0 2px 6px rgba(0,0,0,0.1)")
                     .set("border", "1px solid #f0f0f0")
-                    .set("margin-top", "0");
+                    .set("text-align", "center")
+                    .set("white-space", "nowrap"); // Prevent text wrapping
 
             barColumn.add(valueLabel, barAreaContainer, dayLabel);
 
-            // Hover effects
+            // Enhanced hover effects
             final int currentIndex = i;
             barColumn.getElement().addEventListener("mouseenter", e -> {
                 barAreaContainer.getStyle()
-                        .set("transform", "translateY(-3px)")
+                        .set("transform", "translateY(-2px)")
                         .set("transition", "transform 0.3s ease");
                 barContainer.getStyle()
-                        .set("box-shadow", "0 8px 25px rgba(139, 69, 19, 0.4)");
+                        .set("box-shadow", "0 6px 20px rgba(139, 69, 19, 0.4)");
                 valueLabel.getStyle()
                         .set("opacity", "1")
                         .set("transform", "translateX(-50%) translateY(0px)");
@@ -906,7 +943,7 @@ public class Dashboard extends VerticalLayout {
                 barAreaContainer.getStyle()
                         .set("transform", "translateY(0px)");
                 barContainer.getStyle()
-                        .set("box-shadow", "0 4px 15px rgba(139, 69, 19, 0.3)");
+                        .set("box-shadow", "0 3px 12px rgba(139, 69, 19, 0.3)");
                 valueLabel.getStyle()
                         .set("opacity", "0")
                         .set("transform", "translateX(-50%) translateY(-10px)");
@@ -924,15 +961,23 @@ public class Dashboard extends VerticalLayout {
 
         chartArea.add(barsContainer);
 
-        // Add CSS keyframes untuk animasi shine
+        // Add CSS untuk responsivitas dan animasi
         chartContainer.getElement().executeJs(
-                "if (!document.querySelector('#shine-animation')) {" +
+                "if (!document.querySelector('#responsive-chart-styles')) {" +
                         "const style = document.createElement('style');" +
-                        "style.id = 'shine-animation';" +
+                        "style.id = 'responsive-chart-styles';" +
                         "style.textContent = `" +
                         "@keyframes shine {" +
                         "  0% { left: -100%; }" +
                         "  100% { left: 100%; }" +
+                        "}" +
+                        "@media (max-width: 768px) {" +
+                        "  .chart-area { padding: 15px !important; }" +
+                        "  .chart-area .bar-container { min-width: 20px !important; max-width: 30px !important; }" +
+                        "}" +
+                        "@media (max-width: 480px) {" +
+                        "  .chart-area { padding: 10px !important; }" +
+                        "  .chart-area .bar-container { min-width: 18px !important; max-width: 25px !important; }" +
                         "}" +
                         "`;" +
                         "document.head.appendChild(style);" +
@@ -951,7 +996,9 @@ public class Dashboard extends VerticalLayout {
                 .set("margin-bottom", "20px")
                 .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
                 .set("border-radius", "12px")
-                .set("padding", "15px");
+                .set("padding", "15px")
+                .set("flex-wrap", "wrap") // Allow wrapping pada layar kecil
+                .set("gap", "10px");
 
         statsRow.add(
                 createMiniStat("Rata-rata", "Rp 1.971k", "#8B4513", "📊"),
@@ -967,35 +1014,35 @@ public class Dashboard extends VerticalLayout {
         container.getStyle()
                 .set("background-color", "white")
                 .set("border-radius", "10px")
-                .set("padding", "15px")
+                .set("padding", "12px")
                 .set("text-align", "center")
                 .set("box-shadow", "0 4px 10px rgba(0,0,0,0.1)")
                 .set("border-top", "3px solid " + color)
-                .set("min-width", "100px")
+                .set("min-width", "80px") // Reduced minimum width
                 .set("flex", "1")
-                .set("margin", "0 5px")
+                .set("margin", "0")
                 .set("position", "relative");
 
         Span emojiSpan = new Span(emoji);
         emojiSpan.getStyle()
-                .set("font-size", "16px")
+                .set("font-size", "14px")
                 .set("display", "block")
-                .set("margin-bottom", "5px");
+                .set("margin-bottom", "4px");
 
         Span labelSpan = new Span(label);
         labelSpan.getStyle()
-                .set("font-size", "12px")
+                .set("font-size", "11px")
                 .set("color", "#666")
                 .set("display", "block")
                 .set("font-weight", "500");
 
         Span valueSpan = new Span(value);
         valueSpan.getStyle()
-                .set("font-size", "16px")
+                .set("font-size", "14px")
                 .set("font-weight", "bold")
                 .set("color", color)
                 .set("display", "block")
-                .set("margin-top", "5px");
+                .set("margin-top", "4px");
 
         container.add(emojiSpan, labelSpan, valueSpan);
         return container;
@@ -1018,8 +1065,8 @@ public class Dashboard extends VerticalLayout {
             menuRow.getStyle()
                     .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
                     .set("border-radius", "12px")
-                    .set("padding", "18px") // Diperbesar dari 15px
-                    .set("margin-bottom", "15px") // Diperbesar dari 12px
+                    .set("padding", "15px")
+                    .set("margin-bottom", "12px")
                     .set("box-shadow", "0 4px 12px rgba(0,0,0,0.08)")
                     .set("border-left", "4px solid " + colors[i])
                     .set("cursor", "pointer")
@@ -1030,71 +1077,80 @@ public class Dashboard extends VerticalLayout {
             HorizontalLayout menuContent = new HorizontalLayout();
             menuContent.setWidthFull();
             menuContent.setAlignItems(FlexComponent.Alignment.CENTER);
+            menuContent.getStyle().set("gap", "12px");
 
-            // Enhanced icon container - diperbesar
+            // Icon container - responsive sizing
             Div iconContainer = new Div();
             iconContainer.getStyle()
-                    .set("width", "50px") // Diperbesar dari 45px
-                    .set("height", "50px")
+                    .set("width", "40px")
+                    .set("height", "40px")
                     .set("background", "linear-gradient(135deg, " + colors[i] + ", " + colors[i] + "cc)")
-                    .set("border-radius", "12px")
+                    .set("border-radius", "10px")
                     .set("display", "flex")
                     .set("align-items", "center")
                     .set("justify-content", "center")
-                    .set("font-size", "22px") // Diperbesar dari 20px
-                    .set("margin-right", "15px")
-                    .set("box-shadow", "0 4px 12px " + colors[i] + "40");
+                    .set("font-size", "18px")
+                    .set("flex-shrink", "0")
+                    .set("box-shadow", "0 3px 10px " + colors[i] + "40");
 
             Span iconSpan = new Span(icons[i]);
             iconContainer.add(iconSpan);
 
-            // Menu info dengan progress bar yang lebih bagus
+            // Menu info dengan progress bar yang responsif
             VerticalLayout menuInfo = new VerticalLayout();
             menuInfo.setPadding(false);
             menuInfo.setSpacing(false);
-            menuInfo.getStyle().set("flex", "1");
+            menuInfo.getStyle()
+                    .set("flex", "1")
+                    .set("min-width", "0"); // Allow shrinking
 
             Span menuName = new Span(menus[i]);
             menuName.getStyle()
                     .set("font-weight", "600")
                     .set("color", "#333")
-                    .set("font-size", "16px") // Diperbesar dari 15px
-                    .set("margin-bottom", "10px"); // Diperbesar dari 8px
+                    .set("font-size", "14px")
+                    .set("margin-bottom", "8px")
+                    .set("white-space", "nowrap")
+                    .set("overflow", "hidden")
+                    .set("text-overflow", "ellipsis"); // Handle long text
 
-            // Enhanced progress bar - diperbesar
+            // Progress bar dengan sizing yang konsisten
             Div progressContainer = new Div();
             progressContainer.getStyle()
                     .set("background-color", "#f5f5f5")
-                    .set("border-radius", "10px")
-                    .set("height", "10px") // Diperbesar dari 8px
+                    .set("border-radius", "8px")
+                    .set("height", "8px")
                     .set("position", "relative")
                     .set("overflow", "hidden")
-                    .set("box-shadow", "inset 0 2px 4px rgba(0,0,0,0.1)");
+                    .set("box-shadow", "inset 0 2px 4px rgba(0,0,0,0.1)")
+                    .set("width", "100%");
 
             Div progressBar = new Div();
             progressBar.getStyle()
                     .set("background", "linear-gradient(90deg, " + colors[i] + ", " + colors[i] + "dd)")
                     .set("height", "100%")
                     .set("width", "0%")
-                    .set("border-radius", "10px")
+                    .set("border-radius", "8px")
                     .set("transition", "width 1.5s cubic-bezier(0.4, 0, 0.2, 1)")
                     .set("position", "relative")
-                    .set("box-shadow", "0 0 10px " + colors[i] + "50");
+                    .set("box-shadow", "0 0 8px " + colors[i] + "50");
 
             progressContainer.add(progressBar);
             menuInfo.add(menuName, progressContainer);
 
-            // Enhanced percentage badge - diperbesar
+            // Percentage badge - responsive sizing
             Div percentageBadge = new Div();
             percentageBadge.getStyle()
                     .set("background", "linear-gradient(135deg, " + colors[i] + ", " + colors[i] + "dd)")
                     .set("color", "white")
-                    .set("padding", "10px 18px") // Diperbesar dari 8px 15px
-                    .set("border-radius", "25px")
+                    .set("padding", "8px 12px")
+                    .set("border-radius", "20px")
                     .set("font-weight", "bold")
-                    .set("font-size", "14px") // Diperbesar dari 13px
-                    .set("box-shadow", "0 4px 12px " + colors[i] + "40")
-                    .set("text-shadow", "0 1px 2px rgba(0,0,0,0.2)");
+                    .set("font-size", "12px")
+                    .set("box-shadow", "0 3px 10px " + colors[i] + "40")
+                    .set("text-shadow", "0 1px 2px rgba(0,0,0,0.2)")
+                    .set("flex-shrink", "0")
+                    .set("white-space", "nowrap");
             percentageBadge.setText(percentages[i] + "%");
 
             menuContent.add(iconContainer, menuInfo, percentageBadge);
@@ -1104,8 +1160,8 @@ public class Dashboard extends VerticalLayout {
             final int currentIndex = i;
             menuRow.getElement().addEventListener("mouseenter", e -> {
                 menuRow.getStyle()
-                        .set("transform", "translateY(-3px) scale(1.02)")
-                        .set("box-shadow", "0 8px 25px rgba(0,0,0,0.15)");
+                        .set("transform", "translateY(-2px) scale(1.01)")
+                        .set("box-shadow", "0 6px 20px rgba(0,0,0,0.12)");
             });
 
             menuRow.getElement().addEventListener("mouseleave", e -> {
