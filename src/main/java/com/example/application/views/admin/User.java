@@ -51,12 +51,12 @@ public class User extends VerticalLayout {
         setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
         setPadding(false);
         setSpacing(false);
-        setSizeFull(); // Menggunakan ukuran penuh layar
+        setSizeFull();
 
         getElement().getStyle()
                 .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
-                .set("height", "100vh") // Tinggi penuh viewport
-                .set("overflow", "hidden"); // Mencegah scroll pada container utama
+                .set("height", "100vh")
+                .set("overflow", "hidden");
 
         initializeData();
         filteredUsersList = new ArrayList<>(usersList);
@@ -66,12 +66,6 @@ public class User extends VerticalLayout {
 
     private void initializeData() {
         usersList = userDAO.getListUsers();
-        System.out.println("=== DEBUG: Data User dari Database ===");
-        usersList.forEach(user -> System.out.println(
-                "ID: " + user.getId() +
-                        ", Username: " + user.getUsername() +
-                        ", Role: " + user.getRole()
-        ));
         filteredUsersList = new ArrayList<>(usersList);
     }
 
@@ -99,7 +93,7 @@ public class User extends VerticalLayout {
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
-        header.setHeight("80px"); // Fixed height untuk header
+        header.setHeight("80px");
         header.getStyle()
                 .set("background", "linear-gradient(135deg, #4E342E 0%, #795548 50%, #8B4513 100%)")
                 .set("color", "white")
@@ -108,7 +102,7 @@ public class User extends VerticalLayout {
                 .set("box-shadow", "0 4px 15px rgba(0,0,0,0.15)")
                 .set("position", "relative")
                 .set("overflow", "hidden")
-                .set("flex-shrink", "0"); // Mencegah header menyusut
+                .set("flex-shrink", "0");
 
         Div pattern = new Div();
         pattern.getStyle()
@@ -276,7 +270,7 @@ public class User extends VerticalLayout {
 
     private Component createUserGrid() {
         VerticalLayout gridContainer = new VerticalLayout();
-        gridContainer.setSizeFull(); // Menggunakan sisa ruang yang tersedia
+        gridContainer.setSizeFull();
         gridContainer.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
                 .set("border-radius", "15px")
@@ -291,7 +285,7 @@ public class User extends VerticalLayout {
         gridHeader.setWidthFull();
         gridHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         gridHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        gridHeader.setHeight("50px"); // Fixed height untuk grid header
+        gridHeader.setHeight("50px");
         gridHeader.getStyle()
                 .set("margin-bottom", "15px")
                 .set("flex-shrink", "0");
@@ -329,10 +323,10 @@ public class User extends VerticalLayout {
 
         grid = new Grid<>(Users.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
-        grid.setSizeFull(); // Grid menggunakan sisa ruang yang tersedia
+        grid.setSizeFull();
         grid.getStyle()
                 .set("border-radius", "10px")
-                .set("overflow", "auto") // Scroll hanya pada grid jika diperlukan
+                .set("overflow", "auto")
                 .set("box-shadow", "0 2px 10px rgba(0,0,0,0.1)")
                 .set("flex", "1");
 
@@ -346,8 +340,6 @@ public class User extends VerticalLayout {
     }
 
     private void configureGrid() {
-        // Menghilangkan kolom User ID karena sudah auto increment
-
         grid.addColumn(new ComponentRenderer<>(user -> {
             HorizontalLayout layout = new HorizontalLayout();
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -369,8 +361,6 @@ public class User extends VerticalLayout {
 
         grid.addColumn(new ComponentRenderer<>(user -> {
             String role = user.getRole() != null ? user.getRole() : "Unknown";
-            System.out.println("Debug - Rendering role: " + role);
-
             Span roleBadge = new Span(role);
             String roleColor = getRoleColor(role);
             roleBadge.getStyle()
@@ -459,7 +449,6 @@ public class User extends VerticalLayout {
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(false);
 
-        // Header dialog yang diperbaiki
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
         dialogContent.setSpacing(false);
@@ -507,7 +496,6 @@ public class User extends VerticalLayout {
 
         header.add(titleLayout, closeBtn);
 
-        // Form layout
         VerticalLayout formContainer = new VerticalLayout();
         formContainer.getStyle()
                 .set("padding", "25px")
@@ -516,16 +504,19 @@ public class User extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
 
-        // Menghilangkan field User ID karena auto increment
         TextField usernameField = new TextField("Username");
         EmailField emailField = new EmailField("Email");
         PasswordField passwordField = new PasswordField("Password");
+        passwordField.setPlaceholder("Masukkan password");
+        passwordField.setHelperText("Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan karakter khusus");
+        passwordField.setPattern("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$");
+        passwordField.setErrorMessage("Password tidak memenuhi kriteria");
+
         ComboBox<String> roleField = new ComboBox<>("Role");
         ComboBox<String> statusField = new ComboBox<>("Status");
 
         usernameField.setPlaceholder("Masukkan username");
         emailField.setPlaceholder("Masukkan email");
-        passwordField.setPlaceholder("Masukkan password");
 
         roleField.setItems("Admin", "Kasir", "Customer");
         roleField.setPlaceholder("Pilih role");
@@ -565,6 +556,13 @@ public class User extends VerticalLayout {
         saveBtn.addClickListener(e -> {
             try {
                 if (user == null) {
+                    if (passwordField.getValue().isEmpty() || !userDAO.validatePassword(passwordField.getValue())) {
+                        Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
+                                        5000, Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+
                     Users newUser = new Users();
                     newUser.setUsername(usernameField.getValue());
                     newUser.setEmail(emailField.getValue());
@@ -583,9 +581,17 @@ public class User extends VerticalLayout {
                 } else {
                     user.setUsername(usernameField.getValue());
                     user.setEmail(emailField.getValue());
+
                     if (!passwordField.getValue().isEmpty()) {
+                        if (!userDAO.validatePassword(passwordField.getValue())) {
+                            Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
+                                            5000, Notification.Position.MIDDLE)
+                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            return;
+                        }
                         user.setPassword(passwordField.getValue());
                     }
+
                     user.setRole(roleField.getValue());
                     user.setIs_active(statusField.getValue().equals("Active") ? 1 : 0);
 
@@ -617,7 +623,6 @@ public class User extends VerticalLayout {
         ConfirmDialog confirmDialog = new ConfirmDialog();
         confirmDialog.setWidth("400px");
 
-        // Header konfirmasi yang diperbaiki
         confirmDialog.setHeader("Konfirmasi Hapus User");
         confirmDialog.setText("Apakah Anda yakin ingin menghapus user '" + user.getUsername() + "'? Tindakan ini tidak dapat dibatalkan.");
 
