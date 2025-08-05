@@ -1,5 +1,7 @@
 package com.example.application.views.auth;
 
+import com.example.application.dao.UserDAO;
+import com.example.application.models.Users;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
@@ -331,9 +333,29 @@ public class LoginPage extends HorizontalLayout {
                 loginButton.setEnabled(true);
 
                 // Simple validation (replace with actual authentication)
-                if (validateCredentials(username, password)) {
+                Users user = validateCredentials(username, password);
+                if (user != null) {
                     showSuccessNotification("Welcome back to Kopi.in!");
-                    redirectToDashboard();
+
+                    // Redirect based on role
+                    String role = user.getRole().toLowerCase();
+                    getUI().ifPresent(u -> {
+                        switch (role) {
+                            case "admin":
+                                ui.navigate("admin/dashboard");
+                                break;
+                            case "kasir":
+                                ui.navigate("kasir/dashboard");
+                                break;
+                            case "customer":
+                                ui.navigate("home");
+                                break;
+                            default:
+                                ui.navigate("login"); // fallback
+                                break;
+                        }
+                    });
+
                 } else {
                     showErrorNotification("Invalid username or password");
                     passwordField.clear();
@@ -343,12 +365,15 @@ public class LoginPage extends HorizontalLayout {
         });
     }
 
-    private boolean validateCredentials(String username, String password) {
-        // Simple demo validation - replace with actual authentication logic
-        return ("admin".equals(username) && "admin123".equals(password)) ||
-                ("user".equals(username) && "user123".equals(password)) ||
-                ("demo".equals(username) && "demo123".equals(password));
+    private Users validateCredentials(String username, String password) {
+        UserDAO userDAO = new UserDAO();
+        Users user = userDAO.login(username, password);
+        if (user != null && user.getIs_active() == 1) {
+            return user;
+        }
+        return null;
     }
+
 
     private void redirectToDashboard() {
         // Redirect to main dashboard

@@ -57,6 +57,31 @@ public class UserDAO {
         }
     }
 
+    public Users login(String username, String password) {
+        Users user = null;
+        try {
+            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, username);
+            statement.setString(2, password);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                user = new Users();
+                user.setId(String.valueOf(resultSet.getInt("id")));
+                user.setUsername(resultSet.getString("username"));
+                user.setEmail(resultSet.getString("email"));
+                user.setPassword(resultSet.getString("password"));
+                user.setRole(convertRoleToDisplayFormat(resultSet.getString("role")));
+                user.setIs_active(resultSet.getInt("is_active"));
+                user.setCreated_at(resultSet.getTimestamp("created_at"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+
+
     private String convertRoleToDisplayFormat(String role) {
         if (role == null) return null;
 
