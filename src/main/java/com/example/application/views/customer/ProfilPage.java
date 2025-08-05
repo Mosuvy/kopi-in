@@ -123,11 +123,11 @@ public class ProfilPage extends VerticalLayout {
         // Tombol simpan
         Button saveButton = new Button("Simpan", event -> {
             if (nameField.isEmpty() || birthDateField.isEmpty() || addressField.isEmpty()) {
-                Notification.show("Mohon lengkapi semua field yang diperlukan!", 3000, Notification.Position.TOP_CENTER);
+                Notification.show("Mohon lengkapi semua field yang diperlukan yaa!", 3000, Notification.Position.TOP_CENTER);
                 return;
             }
             if (!photoUploaded) {
-                Notification.show("Mohon upload foto profil terlebih dahulu!", 3000, Notification.Position.TOP_CENTER);
+                Notification.show("Mohon upload foto profil terlebih dahulu yaa!", 3000, Notification.Position.TOP_CENTER);
                 return;
             }
             Notification.show("Profil berhasil disimpan!", 3000, Notification.Position.TOP_CENTER);
