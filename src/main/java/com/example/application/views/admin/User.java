@@ -508,9 +508,6 @@ public class User extends VerticalLayout {
         EmailField emailField = new EmailField("Email");
         PasswordField passwordField = new PasswordField("Password");
         passwordField.setPlaceholder("Masukkan password");
-        passwordField.setHelperText("Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan karakter khusus");
-        passwordField.setPattern("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$");
-        passwordField.setErrorMessage("Password tidak memenuhi kriteria");
 
         ComboBox<String> roleField = new ComboBox<>("Role");
         ComboBox<String> statusField = new ComboBox<>("Status");
@@ -556,8 +553,19 @@ public class User extends VerticalLayout {
         saveBtn.addClickListener(e -> {
             try {
                 if (user == null) {
-                    if (passwordField.getValue().isEmpty() || !userDAO.validatePassword(passwordField.getValue())) {
-                        Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
+                    if (passwordField.getValue().isEmpty()) {
+                        Notification.show("Password tidak boleh kosong", 3000,
+                                        Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+
+                    if (!userDAO.validatePassword(passwordField.getValue())) {
+                        Notification.show("Password harus mengandung:\n" +
+                                                "- Minimal 8 karakter\n" +
+                                                "- Huruf besar dan kecil\n" +
+                                                "- Angka\n" +
+                                                "- Karakter khusus",
                                         5000, Notification.Position.MIDDLE)
                                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
@@ -584,7 +592,11 @@ public class User extends VerticalLayout {
 
                     if (!passwordField.getValue().isEmpty()) {
                         if (!userDAO.validatePassword(passwordField.getValue())) {
-                            Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
+                            Notification.show("Password harus mengandung:\n" +
+                                                    "- Minimal 8 karakter\n" +
+                                                    "- Huruf besar dan kecil\n" +
+                                                    "- Angka\n" +
+                                                    "- Karakter khusus",
                                             5000, Notification.Position.MIDDLE)
                                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
                             return;
