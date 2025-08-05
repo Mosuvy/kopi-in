@@ -1,5 +1,7 @@
 package com.example.application.views.auth;
 
+import com.example.application.models.Users;
+import com.example.application.views.admin.User;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -14,6 +16,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.example.application.dao.UserDAO;
+import java.sql.Timestamp;
 import com.vaadin.flow.router.Route;
 
 @Route("register")
@@ -334,78 +338,46 @@ public class RegisterPage extends HorizontalLayout {
     }
 
     private void handleRegister() {
-        String username = usernameField.getValue().trim();
-        String email = emailField.getValue().trim();
+        String username = usernameField.getValue();
+        String email = emailField.getValue();
         String password = passwordField.getValue();
         String confirmPassword = confirmPasswordField.getValue();
 
-        // Validation
-        if (username.isEmpty()) {
-            showErrorNotification("Username tidak boleh kosong");
-            usernameField.focus();
-            return;
-        }
-
-        if (email.isEmpty()) {
-            showErrorNotification("Email tidak boleh kosong");
-            emailField.focus();
-            return;
-        }
-
-        if (!isValidEmail(email)) {
-            showErrorNotification("Format email tidak valid");
-            emailField.focus();
-            return;
-        }
-
-        if (password.isEmpty()) {
-            showErrorNotification("Password tidak boleh kosong");
-            passwordField.focus();
-            return;
-        }
-
-        if (password.length() < 6) {
-            showErrorNotification("Password minimal 6 karakter");
-            passwordField.focus();
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            Notification.show("Semua field harus diisi!");
             return;
         }
 
         if (!password.equals(confirmPassword)) {
-            showErrorNotification("Konfirmasi password tidak cocok");
-            confirmPasswordField.clear();
-            confirmPasswordField.focus();
+            Notification.show("Password tidak cocok!");
             return;
         }
 
-        // Show loading state
-        registerButton.setText("Mendaftarkan...");
-        registerButton.setEnabled(false);
+        // Buat objek Users
+        Users newUser = new Users();
+        newUser.setUsername(username);
+        newUser.setEmail(email);
+        newUser.setPassword(password); // ⚠️ Disarankan di-hash pakai BCrypt
+        newUser.setRole("customer");
+        newUser.setIs_active(1); // aktif
+        newUser.setCreated_at(new Timestamp(System.currentTimeMillis()));
 
-        // Simulate registration process
-        getUI().ifPresent(ui -> {
-            ui.access(() -> {
-                try {
-                    Thread.sleep(1500); // Simulate processing
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+        // Simpan ke database
+        UserDAO userDAO = new UserDAO();
+        boolean success = userDAO.createUsers(newUser);
 
-                // Reset button
-                registerButton.setText("Daftar Sekarang");
-                registerButton.setEnabled(true);
+        if (success) {
+            Notification.show("Registrasi berhasil!", 3000, Notification.Position.TOP_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-                // Simple validation (replace with actual registration logic)
-                if (isUsernameAvailable(username)) {
-                    showSuccessNotification("Akun berhasil dibuat! Silakan login.");
-                    clearForm();
-                    redirectToLogin();
-                } else {
-                    showErrorNotification("Username sudah digunakan, silakan pilih yang lain");
-                    usernameField.focus();
-                }
-            });
-        });
+            // (Optional) Redirect ke login page
+            getUI().ifPresent(ui -> ui.navigate("login"));
+        } else {
+            Notification.show("Registrasi gagal!", 5000, Notification.Position.TOP_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
+
 
     private boolean isValidEmail(String email) {
         return email.contains("@") && email.contains(".");

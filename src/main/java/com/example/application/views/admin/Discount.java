@@ -317,6 +317,29 @@ public class Discount extends VerticalLayout {
         searchField.getStyle()
                 .set("border-radius", "10px");
 
+        // ✅ Tambahkan fitur pencarian di sini:
+        searchField.addValueChangeListener(e -> {
+            String searchTerm = e.getValue().trim().toLowerCase();
+
+            if (searchTerm.isEmpty()) {
+                grid.setItems(promoList); // Tampilkan semua
+            } else {
+                List<Promo> filtered = promoList.stream()
+                        .filter(promo ->
+                                promo.getName().toLowerCase().contains(searchTerm) ||
+                                        promo.getCode().toLowerCase().contains(searchTerm) ||
+                                        (promo.getDescription() != null && promo.getDescription().toLowerCase().contains(searchTerm)) ||
+                                        String.valueOf(promo.getDiscount_value()).contains(searchTerm) ||
+                                        String.valueOf(promo.getMin_purchase()).contains(searchTerm) ||
+                                        (promo.getStart_date() != null && promo.getStart_date().toString().contains(searchTerm)) ||
+                                        (promo.getEnd_date() != null && promo.getEnd_date().toString().contains(searchTerm))
+                        )
+                        .toList();
+
+                grid.setItems(filtered);
+            }
+        });
+
         gridHeader.add(gridTitle, searchField);
 
         configureGridColumns();
@@ -333,6 +356,7 @@ public class Discount extends VerticalLayout {
 
         return gridContainer;
     }
+
 
     private void configureGridColumns() {
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
