@@ -51,11 +51,12 @@ public class User extends VerticalLayout {
         setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
         setPadding(false);
         setSpacing(false);
+        setSizeFull(); // Menggunakan ukuran penuh layar
 
         getElement().getStyle()
                 .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
-                .set("min-height", "100vh")
-                .set("padding", "0");
+                .set("height", "100vh") // Tinggi penuh viewport
+                .set("overflow", "hidden"); // Mencegah scroll pada container utama
 
         initializeData();
         filteredUsersList = new ArrayList<>(usersList);
@@ -81,8 +82,7 @@ public class User extends VerticalLayout {
         filteredUsersList = usersList.stream()
                 .filter(user -> {
                     boolean matchesSearch = user.getUsername().toLowerCase().contains(searchTerm) ||
-                            user.getEmail().toLowerCase().contains(searchTerm) ||
-                            user.getId().toLowerCase().contains(searchTerm);
+                            user.getEmail().toLowerCase().contains(searchTerm);
 
                     boolean matchesRole = selectedRole.equals("Semua") ||
                             (user.getRole() != null && user.getRole().equalsIgnoreCase(selectedRole));
@@ -95,20 +95,20 @@ public class User extends VerticalLayout {
     }
 
     private Component createHeader() {
-        // [Implementasi createHeader tetap sama]
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setHeight("80px"); // Fixed height untuk header
         header.getStyle()
                 .set("background", "linear-gradient(135deg, #4E342E 0%, #795548 50%, #8B4513 100%)")
                 .set("color", "white")
-                .set("padding", "25px 30px")
-                .set("border-radius", "0 0 20px 20px")
-                .set("margin-bottom", "25px")
-                .set("box-shadow", "0 8px 25px rgba(0,0,0,0.15)")
+                .set("padding", "0 30px")
+                .set("border-radius", "0 0 15px 15px")
+                .set("box-shadow", "0 4px 15px rgba(0,0,0,0.15)")
                 .set("position", "relative")
-                .set("overflow", "hidden");
+                .set("overflow", "hidden")
+                .set("flex-shrink", "0"); // Mencegah header menyusut
 
         Div pattern = new Div();
         pattern.getStyle()
@@ -130,13 +130,13 @@ public class User extends VerticalLayout {
         Div iconContainer = new Div();
         iconContainer.getStyle()
                 .set("background", "linear-gradient(135deg, #D7A449 0%, #FFD700 100%)")
-                .set("padding", "12px")
-                .set("border-radius", "15px")
+                .set("padding", "10px")
+                .set("border-radius", "12px")
                 .set("box-shadow", "0 4px 15px rgba(215, 164, 73, 0.4)")
-                .set("margin-right", "15px");
+                .set("margin-right", "12px");
 
         Icon usersIcon = new Icon(VaadinIcon.USERS);
-        usersIcon.setSize("36px");
+        usersIcon.setSize("28px");
         usersIcon.getStyle()
                 .set("color", "#4E342E")
                 .set("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.3))");
@@ -144,8 +144,8 @@ public class User extends VerticalLayout {
 
         H1 title = new H1("User Management");
         title.getStyle()
-                .set("margin", "0 0 0 10px")
-                .set("font-size", "28px")
+                .set("margin", "0")
+                .set("font-size", "24px")
                 .set("font-weight", "600")
                 .set("color", "white")
                 .set("text-shadow", "0 2px 4px rgba(0,0,0,0.3)");
@@ -158,8 +158,8 @@ public class User extends VerticalLayout {
                 .set("background", "linear-gradient(135deg, #D7A449 0%, #FFD700 100%)")
                 .set("color", "#4E342E")
                 .set("border", "none")
-                .set("border-radius", "12px")
-                .set("padding", "12px 20px")
+                .set("border-radius", "10px")
+                .set("padding", "10px 18px")
                 .set("font-weight", "600")
                 .set("box-shadow", "0 4px 15px rgba(215, 164, 73, 0.4)")
                 .set("cursor", "pointer")
@@ -172,12 +172,12 @@ public class User extends VerticalLayout {
     }
 
     private Component createStatsCards() {
-        // [Implementasi createStatsCards tetap sama]
         HorizontalLayout statsLayout = new HorizontalLayout();
         statsLayout.setWidthFull();
         statsLayout.setSpacing(true);
         statsLayout.getStyle()
                 .set("margin-bottom", "25px")
+                .set("margin-top", "25px")
                 .set("padding", "0 15px");
 
         long totalUsers = usersList.size();
@@ -196,7 +196,6 @@ public class User extends VerticalLayout {
     }
 
     private Component createStatCard(String title, String value, VaadinIcon icon, String color, String emoji) {
-        // [Implementasi createStatCard tetap sama]
         VerticalLayout card = new VerticalLayout();
         card.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
@@ -276,27 +275,32 @@ public class User extends VerticalLayout {
     }
 
     private Component createUserGrid() {
-        // [Implementasi createUserGrid tetap sama]
         VerticalLayout gridContainer = new VerticalLayout();
+        gridContainer.setSizeFull(); // Menggunakan sisa ruang yang tersedia
         gridContainer.getStyle()
                 .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
-                .set("border-radius", "20px")
-                .set("padding", "30px")
-                .set("box-shadow", "0 10px 30px rgba(0,0,0,0.1)")
+                .set("border-radius", "15px")
+                .set("padding", "20px")
+                .set("box-shadow", "0 6px 20px rgba(0,0,0,0.1)")
                 .set("border", "1px solid #f0f0f0")
-                .set("margin", "0 15px");
+                .set("margin", "0 15px 15px 15px")
+                .set("flex", "1")
+                .set("overflow", "hidden");
 
         HorizontalLayout gridHeader = new HorizontalLayout();
         gridHeader.setWidthFull();
         gridHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         gridHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        gridHeader.getStyle().set("margin-bottom", "20px");
+        gridHeader.setHeight("50px"); // Fixed height untuk grid header
+        gridHeader.getStyle()
+                .set("margin-bottom", "15px")
+                .set("flex-shrink", "0");
 
         H3 gridTitle = new H3("Daftar Users");
         gridTitle.getStyle()
                 .set("margin", "0")
                 .set("color", "#4E342E")
-                .set("font-size", "20px")
+                .set("font-size", "18px")
                 .set("font-weight", "600");
 
         HorizontalLayout searchSection = new HorizontalLayout();
@@ -305,8 +309,9 @@ public class User extends VerticalLayout {
         searchField = new TextField();
         searchField.setPlaceholder("Cari user...");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setWidth("200px");
         searchField.getStyle()
-                .set("border-radius", "12px")
+                .set("border-radius", "10px")
                 .set("margin-right", "10px");
         searchField.setValueChangeMode(ValueChangeMode.LAZY);
         searchField.addValueChangeListener(e -> filterUsers());
@@ -315,7 +320,8 @@ public class User extends VerticalLayout {
         roleFilter.setPlaceholder("Filter Role");
         roleFilter.setItems("Semua", "Admin", "Kasir", "Customer");
         roleFilter.setValue("Semua");
-        roleFilter.getStyle().set("border-radius", "12px");
+        roleFilter.setWidth("150px");
+        roleFilter.getStyle().set("border-radius", "10px");
         roleFilter.addValueChangeListener(e -> filterUsers());
 
         searchSection.add(searchField, roleFilter);
@@ -323,10 +329,12 @@ public class User extends VerticalLayout {
 
         grid = new Grid<>(Users.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+        grid.setSizeFull(); // Grid menggunakan sisa ruang yang tersedia
         grid.getStyle()
-                .set("border-radius", "12px")
-                .set("overflow", "hidden")
-                .set("box-shadow", "0 4px 15px rgba(0,0,0,0.1)");
+                .set("border-radius", "10px")
+                .set("overflow", "auto") // Scroll hanya pada grid jika diperlukan
+                .set("box-shadow", "0 2px 10px rgba(0,0,0,0.1)")
+                .set("flex", "1");
 
         configureGrid();
         grid.setItems(filteredUsersList);
@@ -338,10 +346,7 @@ public class User extends VerticalLayout {
     }
 
     private void configureGrid() {
-        grid.addColumn(Users::getId)
-                .setHeader("User ID")
-                .setWidth("100px")
-                .setFlexGrow(0);
+        // Menghilangkan kolom User ID karena sudah auto increment
 
         grid.addColumn(new ComponentRenderer<>(user -> {
             HorizontalLayout layout = new HorizontalLayout();
@@ -360,7 +365,7 @@ public class User extends VerticalLayout {
 
         grid.addColumn(Users::getEmail)
                 .setHeader("Email")
-                .setWidth("250px");
+                .setWidth("280px");
 
         grid.addColumn(new ComponentRenderer<>(user -> {
             String role = user.getRole() != null ? user.getRole() : "Unknown";
@@ -377,7 +382,8 @@ public class User extends VerticalLayout {
                     .set("font-weight", "600")
                     .set("text-shadow", "0 1px 2px rgba(0,0,0,0.2)")
                     .set("display", "inline-block")
-                    .set("min-width", "60px");
+                    .set("min-width", "60px")
+                    .set("text-align", "center");
             return roleBadge;
         })).setHeader("Role").setWidth("120px");
 
@@ -418,7 +424,7 @@ public class User extends VerticalLayout {
             editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             editBtn.getStyle()
                     .set("color", "#8B4513")
-                    .set("border-radius", "8px")
+                    .set("border-radius", "6px")
                     .set("margin-right", "5px");
             editBtn.addClickListener(e -> openUserDialog(user));
 
@@ -426,12 +432,12 @@ public class User extends VerticalLayout {
             deleteBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             deleteBtn.getStyle()
                     .set("color", "#DC143C")
-                    .set("border-radius", "8px");
+                    .set("border-radius", "6px");
             deleteBtn.addClickListener(e -> confirmDelete(user));
 
             actions.add(editBtn, deleteBtn);
             return actions;
-        })).setHeader("Aksi").setWidth("120px").setFlexGrow(0);
+        })).setHeader("Aksi").setWidth("100px").setFlexGrow(0);
     }
 
     private String getRoleColor(String role) {
@@ -448,11 +454,18 @@ public class User extends VerticalLayout {
     }
 
     private void openUserDialog(Users user) {
-        // [Implementasi openUserDialog tetap sama]
         Dialog dialog = new Dialog();
-        dialog.setWidth("500px");
+        dialog.setWidth("480px");
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(false);
+
+        // Header dialog yang diperbaiki
+        VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
+        dialogContent.setSpacing(false);
+        dialogContent.getStyle()
+                .set("border-radius", "15px")
+                .set("overflow", "hidden");
 
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
@@ -461,38 +474,54 @@ public class User extends VerticalLayout {
         header.getStyle()
                 .set("background", "linear-gradient(135deg, #4E342E 0%, #8B4513 100%)")
                 .set("color", "white")
-                .set("padding", "20px")
-                .set("margin", "-20px -20px 20px -20px")
-                .set("border-radius", "12px 12px 0 0");
+                .set("padding", "20px 25px")
+                .set("margin", "0")
+                .set("min-height", "60px");
+
+        HorizontalLayout titleLayout = new HorizontalLayout();
+        titleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        titleLayout.setSpacing(true);
 
         Icon dialogIcon = new Icon(user == null ? VaadinIcon.PLUS : VaadinIcon.EDIT);
         dialogIcon.setSize("20px");
+        dialogIcon.getStyle().set("color", "#FFD700");
 
         H3 dialogTitle = new H3(user == null ? "Tambah User Baru" : "Edit User");
-        dialogTitle.getStyle().set("margin", "0").set("margin-left", "10px");
+        dialogTitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "18px")
+                .set("font-weight", "600")
+                .set("color", "white")
+                .set("white-space", "nowrap");
 
-        HorizontalLayout titleLayout = new HorizontalLayout(dialogIcon, dialogTitle);
-        titleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        titleLayout.add(dialogIcon, dialogTitle);
 
         Button closeBtn = new Button(new Icon(VaadinIcon.CLOSE));
         closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        closeBtn.getStyle().set("color", "white");
+        closeBtn.getStyle()
+                .set("color", "white")
+                .set("background", "transparent")
+                .set("border", "none")
+                .set("padding", "8px");
         closeBtn.addClickListener(e -> dialog.close());
 
         header.add(titleLayout, closeBtn);
 
+        // Form layout
+        VerticalLayout formContainer = new VerticalLayout();
+        formContainer.getStyle()
+                .set("padding", "25px")
+                .set("background", "white");
+
         FormLayout formLayout = new FormLayout();
         formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
 
-        TextField idField = new TextField("User ID");
+        // Menghilangkan field User ID karena auto increment
         TextField usernameField = new TextField("Username");
         EmailField emailField = new EmailField("Email");
         PasswordField passwordField = new PasswordField("Password");
         ComboBox<String> roleField = new ComboBox<>("Role");
         ComboBox<String> statusField = new ComboBox<>("Status");
-
-        idField.setPlaceholder("Otomatis dibuat");
-        idField.setReadOnly(true);
 
         usernameField.setPlaceholder("Masukkan username");
         emailField.setPlaceholder("Masukkan email");
@@ -505,7 +534,6 @@ public class User extends VerticalLayout {
         statusField.setPlaceholder("Pilih status");
 
         if (user != null) {
-            idField.setValue(user.getId());
             usernameField.setValue(user.getUsername());
             emailField.setValue(user.getEmail());
             roleField.setValue(user.getRole());
@@ -514,7 +542,7 @@ public class User extends VerticalLayout {
             statusField.setValue("Active");
         }
 
-        formLayout.add(idField, usernameField, emailField, passwordField, roleField, statusField);
+        formLayout.add(usernameField, emailField, passwordField, roleField, statusField);
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setWidthFull();
@@ -522,13 +550,17 @@ public class User extends VerticalLayout {
         buttonLayout.getStyle().set("margin-top", "20px");
 
         Button cancelBtn = new Button("Batal");
+        cancelBtn.getStyle()
+                .set("margin-right", "10px")
+                .set("border-radius", "8px");
         cancelBtn.addClickListener(e -> dialog.close());
 
         Button saveBtn = new Button(user == null ? "Tambah" : "Simpan");
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveBtn.getStyle()
                 .set("background", "linear-gradient(135deg, #8B4513, #CD853F)")
-                .set("border", "none");
+                .set("border", "none")
+                .set("border-radius", "8px");
 
         saveBtn.addClickListener(e -> {
             try {
@@ -574,21 +606,20 @@ public class User extends VerticalLayout {
         });
 
         buttonLayout.add(cancelBtn, saveBtn);
+        formContainer.add(formLayout, buttonLayout);
 
-        VerticalLayout dialogContent = new VerticalLayout();
-        dialogContent.add(header, formLayout, buttonLayout);
-        dialogContent.setPadding(false);
-        dialogContent.setSpacing(false);
-
+        dialogContent.add(header, formContainer);
         dialog.add(dialogContent);
         dialog.open();
     }
 
     private void confirmDelete(Users user) {
-        // [Implementasi confirmDelete tetap sama]
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("Konfirmasi Hapus");
-        confirmDialog.setText("Apakah Anda yakin ingin menghapus user '" + user.getUsername() + "'?");
+        confirmDialog.setWidth("400px");
+
+        // Header konfirmasi yang diperbaiki
+        confirmDialog.setHeader("Konfirmasi Hapus User");
+        confirmDialog.setText("Apakah Anda yakin ingin menghapus user '" + user.getUsername() + "'? Tindakan ini tidak dapat dibatalkan.");
 
         confirmDialog.setCancelable(true);
         confirmDialog.setCancelText("Batal");
