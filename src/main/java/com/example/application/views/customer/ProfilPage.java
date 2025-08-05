@@ -69,17 +69,25 @@ public class ProfilPage extends VerticalLayout {
         profilePlaceholder.getStyle()
                 .set("border-radius", "50%")
                 .set("background-color", "#e0e0e0")
-                .set("margin", "0 auto 10px auto");
+                .set("margin", "0 auto 10px auto")
+                .set("position", "relative")
+                .set("overflow", "hidden");
 
-        // Foto profil
+        // Foto profil draggable
         profileImage = new Image();
-        profileImage.setWidth("100px");
-        profileImage.setHeight("100px");
+        profileImage.setWidth("150px"); // Lebih besar dari lingkaran supaya bisa digeser
+        profileImage.setHeight("150px");
         profileImage.getStyle()
                 .set("border-radius", "50%")
                 .set("object-fit", "cover")
-                .set("margin-bottom", "10px");
+                .set("position", "absolute")
+                .set("cursor", "grab")
+                .set("left", "0px")
+                .set("top", "0px");
         profileImage.setVisible(false);
+
+        // Tambahkan foto ke placeholder
+        profilePlaceholder.add(profileImage);
 
         // Upload foto
         MemoryBuffer buffer = new MemoryBuffer();
@@ -96,7 +104,6 @@ public class ProfilPage extends VerticalLayout {
                 profileImage.setSrc(new StreamResource(event.getFileName(),
                         () -> new ByteArrayInputStream(bytes)));
                 profileImage.setVisible(true);
-                profilePlaceholder.setVisible(false);
                 photoUploaded = true;
                 Notification.show("Foto profil berhasil diunggah!");
                 upload.clearFileList();
@@ -107,6 +114,31 @@ public class ProfilPage extends VerticalLayout {
                 Notification.show("Gagal mengunggah foto: " + e.getMessage());
             }
         });
+
+        // JavaScript untuk drag gambar
+        profileImage.getElement().executeJs(
+                "this.onmousedown = function(e) {" +
+                        "e.preventDefault();" +
+                        "let img = this;" +
+                        "let shiftX = e.clientX - img.getBoundingClientRect().left;" +
+                        "let shiftY = e.clientY - img.getBoundingClientRect().top;" +
+                        "img.style.cursor = 'grabbing';" +
+                        "function moveAt(pageX, pageY) {" +
+                        "  img.style.left = (pageX - shiftX - img.parentElement.getBoundingClientRect().left) + 'px';" +
+                        "  img.style.top = (pageY - shiftY - img.parentElement.getBoundingClientRect().top) + 'px';" +
+                        "}" +
+                        "function onMouseMove(e) {" +
+                        "  moveAt(e.pageX, e.pageY);" +
+                        "}" +
+                        "document.addEventListener('mousemove', onMouseMove);" +
+                        "document.onmouseup = function() {" +
+                        "  document.removeEventListener('mousemove', onMouseMove);" +
+                        "  img.style.cursor = 'grab';" +
+                        "  document.onmouseup = null;" +
+                        "};" +
+                        "};" +
+                        "this.ondragstart = function() { return false; };"
+        );
 
         // Field input
         nameField = new TextField("Nama");
@@ -144,7 +176,7 @@ public class ProfilPage extends VerticalLayout {
         formLayout.setWidthFull();
 
         // Tambahkan semua ke card
-        card.add(title, profilePlaceholder, profileImage, upload, formLayout, saveButton);
+        card.add(title, profilePlaceholder, upload, formLayout, saveButton);
 
         // Tambahkan card ke layout utama
         add(card);
