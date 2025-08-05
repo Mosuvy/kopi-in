@@ -348,7 +348,7 @@ public class LoginPage extends HorizontalLayout {
                                 ui.navigate("kasir/dashboard");
                                 break;
                             case "customer":
-                                ui.navigate("home");
+                                ui.navigate("//");
                                 break;
                             default:
                                 ui.navigate("login"); // fallback
@@ -373,7 +373,6 @@ public class LoginPage extends HorizontalLayout {
         }
         return null;
     }
-
 
     private void redirectToDashboard() {
         // Redirect to main dashboard
