@@ -64,8 +64,8 @@ public class ProfilPage extends VerticalLayout {
 
         // Placeholder lingkaran abu-abu
         profilePlaceholder = new Div();
-        profilePlaceholder.setWidth("100px");
-        profilePlaceholder.setHeight("100px");
+        profilePlaceholder.setWidth("130px");
+        profilePlaceholder.setHeight("130px");
         profilePlaceholder.getStyle()
                 .set("border-radius", "50%")
                 .set("background-color", "#e0e0e0")
