@@ -208,3 +208,38 @@
   width: 100%;
   display: block;
 }
+
+/* === Card Button === */
+vaadin-dialog-overlay[theme~="right-side-dialog"] {
+  align-items: flex-end !important;  /* posisi vertikal */
+  justify-content: flex-end !important; /* posisi horizontal ke kanan */
+}
+
+vaadin-dialog-overlay[theme~="right-side-dialog"]::part(overlay) {
+  width: 400px;
+  height: 100vh;
+  margin: 0;
+  border-radius: 0;
+}
+
+.cart-button {
+    margin-left: auto;
+    margin-right: 1rem;
+    position: relative;
+}
+
+.cart-button::after {
+    content: attr(text);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--lumo-error-color);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}

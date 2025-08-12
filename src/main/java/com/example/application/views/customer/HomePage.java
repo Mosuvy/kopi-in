@@ -2,6 +2,7 @@ package com.example.application.views.customer;
 
 import com.example.application.dao.CategoryDAOC;
 import com.example.application.dao.ProductDAOC;
+import com.example.application.models.CartItem;
 import com.example.application.models.CategoriesC;
 import com.example.application.models.ProductsC;
 import com.example.application.views.AppLayoutNavbar;
@@ -16,9 +17,12 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @PageTitle("kopi-In")
@@ -27,6 +31,7 @@ public class HomePage extends VerticalLayout {
 
     private final ProductDAOC productDAO = new ProductDAOC();
     private final CategoryDAOC categoryDAO = new CategoryDAOC();
+    private final List<CartItem> cartItems = new ArrayList<>();
 
 
     // TODO: Cek apakah user sudah login
@@ -35,7 +40,6 @@ public class HomePage extends VerticalLayout {
 
     // TODO: Tampilan Home
     // - Menu
-    // - Filter ( Search, Categories)
     // - Profil Pengguna
     // - History Pemesanan
     // - Logout
@@ -321,8 +325,22 @@ public class HomePage extends VerticalLayout {
         addToCart.addClickListener(event -> {
             addToCart.getUI().ifPresent(ui -> {
                 ui.getPage().executeJs("alert('Produk " + id +" berhasil ditambahkan ke keranjang!')");
+                Optional<CartItem> existingItem = cartItems.stream()
+                        .filter(item -> item.getProductId().equals(id))
+                        .findFirst();
+
+                if (existingItem.isPresent()) {
+                    // Tambah quantity
+                    CartItem item = existingItem.get();
+                    item.setQuantity(item.getQuantity() + 1);
+                } else {
+                    // Tambah item baru
+                    CartItem newItem = new CartItem(id, nama, harga, 1, imageUrl);
+                    cartItems.add(newItem);
+                }
+
+                VaadinSession.getCurrent().setAttribute("cart", cartItems);
             });
-            // TODO: Masukkan kedalam keranjang
         });
 
         card.add(img, title, price, addToCart);
