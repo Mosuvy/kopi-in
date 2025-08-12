@@ -32,7 +32,7 @@ public class ProductDAO {
         return productList;
     }
 
-    public Products getProduct(String id) {
+    public Products getProductById(String id) {
         String sql = "SELECT * FROM Products WHERE id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {

@@ -125,7 +125,7 @@ public class OrderView extends VerticalLayout {
         productSelectionLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         productComboBox = new ComboBox<>("Select Product");
-        productComboBox.setItems(productDAO.getAllProducts());
+        productComboBox.setItems(productDAO.getListProduct());
         productComboBox.setItemLabelGenerator(Products::getName);
         productComboBox.setWidth("300px");
         productComboBox.getStyle()
@@ -251,7 +251,7 @@ public class OrderView extends VerticalLayout {
                 .set("text-shadow", "0 1px 2px rgba(0,0,0,0.1)");
 
         promoComboBox = new ComboBox<>("Apply Promo");
-        promoComboBox.setItems(promoDAO.getAllPromos());
+        promoComboBox.setItems(promoDAO.getListPromo());
         promoComboBox.setItemLabelGenerator(Promo::getName);
         promoComboBox.setWidth("250px");
         promoComboBox.getStyle()
@@ -387,7 +387,7 @@ public class OrderView extends VerticalLayout {
     private void updatePromoComboBox() {
         promoComboBox.clear();
         promoComboBox.setPlaceholder("Pilih Promo");
-        promoComboBox.setItems(promoDAO.getAllPromos());
+        promoComboBox.setItems(promoDAO.getListPromo());
         promoComboBox.setItemLabelGenerator(promo -> {
             if (promo == null) return "";
             String discountText = String.format("%.0f%%", promo.getDiscount_value() * 100);

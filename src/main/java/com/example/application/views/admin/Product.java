@@ -72,7 +72,7 @@ public class Product extends VerticalLayout {
 
     private void initializeData() {
         // Load data from database
-        categories = categoryDAO.getListCategories();
+        categories = categoryDAO.getAllCategories();
         products = productDAO.getListProduct();
     }
 

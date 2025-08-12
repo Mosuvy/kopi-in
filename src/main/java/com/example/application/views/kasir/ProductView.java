@@ -199,11 +199,6 @@ public class ProductView extends VerticalLayout {
                 .setHeader("Price")
                 .setFlexGrow(1)
                 .setSortable(true);
-
-        productGrid.addColumn(Products::getStock)
-                .setHeader("Stock")
-                .setFlexGrow(1)
-                .setSortable(true);
         
         // Status column with enhanced styling
         productGrid.addComponentColumn(product -> {
@@ -239,7 +234,7 @@ public class ProductView extends VerticalLayout {
         String searchTerm = searchField.getValue().toLowerCase().trim();
         Categories selectedCategory = categoryFilter.getValue();
 
-        List<Products> allProducts = productDAO.getAllProducts();
+        List<Products> allProducts = productDAO.getListProduct();
         
         // Apply filters
         List<Products> filteredProducts = allProducts.stream()
@@ -271,7 +266,7 @@ public class ProductView extends VerticalLayout {
         categoryFilter.clear();
         
         // Refresh grid
-        List<Products> products = productDAO.getAllProducts();
+        List<Products> products = productDAO.getListProduct();
         productGrid.setItems(products);
 
         // Show success notification

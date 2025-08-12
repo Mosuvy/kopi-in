@@ -61,7 +61,7 @@ public class PromoDAO {
     }
 
 
-    public Promo getPromo(String id) {
+    public Promo getPromoById(String id) {
         String query = "SELECT * FROM promo WHERE id = ?";
         Promo promo = null;
 
