@@ -522,15 +522,19 @@ public class User extends VerticalLayout {
         statusField.setPlaceholder("Pilih status");
 
         if (user != null) {
+            // Mode edit - hanya tampilkan username, email, role, dan status
             usernameField.setValue(user.getUsername());
             emailField.setValue(user.getEmail());
             roleField.setValue(user.getRole());
             statusField.setValue(user.getIs_active() == 1 ? "Active" : "Inactive");
-        } else {
-            statusField.setValue("Active");
-        }
 
-        formLayout.add(usernameField, emailField, passwordField, roleField, statusField);
+            // Hanya tambahkan field yang boleh diedit untuk mode edit
+            formLayout.add(usernameField, emailField, roleField, statusField);
+        } else {
+            // Mode tambah - tampilkan semua field termasuk password
+            statusField.setValue("Active");
+            formLayout.add(usernameField, emailField, passwordField, roleField, statusField);
+        }
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setWidthFull();
@@ -553,6 +557,7 @@ public class User extends VerticalLayout {
         saveBtn.addClickListener(e -> {
             try {
                 if (user == null) {
+                    // Mode tambah user baru
                     if (passwordField.getValue().isEmpty()) {
                         Notification.show("Password tidak boleh kosong", 3000,
                                         Notification.Position.MIDDLE)
@@ -587,23 +592,10 @@ public class User extends VerticalLayout {
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     }
                 } else {
+                    // Mode edit user - hanya update username, email, role, dan status
+                    // Password tidak diubah sama sekali
                     user.setUsername(usernameField.getValue());
                     user.setEmail(emailField.getValue());
-
-                    if (!passwordField.getValue().isEmpty()) {
-                        if (!userDAO.validatePassword(passwordField.getValue())) {
-                            Notification.show("Password harus mengandung:\n" +
-                                                    "- Minimal 8 karakter\n" +
-                                                    "- Huruf besar dan kecil\n" +
-                                                    "- Angka\n" +
-                                                    "- Karakter khusus",
-                                            5000, Notification.Position.MIDDLE)
-                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            return;
-                        }
-                        user.setPassword(passwordField.getValue());
-                    }
-
                     user.setRole(roleField.getValue());
                     user.setIs_active(statusField.getValue().equals("Active") ? 1 : 0);
 
