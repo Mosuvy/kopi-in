@@ -72,7 +72,7 @@ public class UserDAO {
     public boolean createUsers(Users Users) {
         try {
             statement = connection.prepareStatement("INSERT INTO Users (id, username, email, password, role, is_active" +
-                    " VALUES (?, ?, ?, ?, ?, ?",
+                            " VALUES (?, ?, ?, ?, ?, ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             statement.setString(1, Users.getId());
             statement.setString(2, Users.getUsername());
@@ -90,7 +90,7 @@ public class UserDAO {
     public boolean updateUsers(Users Users) {
         try {
             statement = connection.prepareStatement("UPDATE Users SET username = ?, email = ?, password = ?, role = ?, is_active" +
-                    "WHERE id = ?",
+                            "WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             statement.setString(1, Users.getUsername());
             statement.setString(2, Users.getEmail());
