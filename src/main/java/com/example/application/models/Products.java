@@ -6,13 +6,11 @@ public class Products {
     private String id;
     private String name;
     private String description;
-    private double price;
-    private int stock;
+    private Double price;
     private String promo_id;
     private String image_url;
     private String category_id;
-    private String category_name;
-    private int is_active;
+    private Integer is_active;
     private Timestamp created_at;
     private Timestamp updated_at;
 
@@ -40,20 +38,12 @@ public class Products {
         this.description = description;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock = stock;
     }
 
     public String getPromo_id() {
@@ -80,19 +70,11 @@ public class Products {
         this.category_id = category_id;
     }
 
-    public String getCategory_name() {
-        return category_name;
-    }
-
-    public void setCategory_name(String category_name) {
-        this.category_name = category_name;
-    }
-
-    public int getIs_active() {
+    public Integer getIs_active() {
         return is_active;
     }
 
-    public void setIs_active(int is_active) {
+    public void setIs_active(Integer is_active) {
         this.is_active = is_active;
     }
 
