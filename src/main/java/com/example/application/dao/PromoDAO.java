@@ -143,6 +143,11 @@ public class PromoDAO {
 
     public Promo getPromoByCode(String code) {
         try {
+
+            if (!code.equals(code.toUpperCase())) {
+                return null;
+            }
+
             Promo promo = null;
             String query = "SELECT * FROM Promo WHERE code = ? AND (end_date >= CURRENT_DATE OR end_date IS NULL)";
             PreparedStatement stmt = connection.prepareStatement(query);

@@ -1,13 +1,14 @@
 package com.example.application.views.customer;
 
+import com.example.application.dao.FeedbackDAO;
 import com.example.application.dao.CategoryDAOC;
 import com.example.application.dao.ProductDAOC;
-import com.example.application.models.CartItem;
-import com.example.application.models.CategoriesC;
-import com.example.application.models.ProductsC;
+import com.example.application.models.*;
+
 import com.example.application.views.AppLayoutNavbar;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -420,6 +421,11 @@ public class HomePage extends VerticalLayout {
         feedbackSection.setSpacing(false);
         feedbackSection.setWidth("45%");
 
+        // Label feedback
+        H3 feedbackTitle = new H3("Kirim Masukan Anda");
+        feedbackTitle.getStyle().set("margin-top", "0");
+        feedbackTitle.getStyle().set("color", "white");
+
         TextArea feedbackInput = new TextArea();
         feedbackInput.setPlaceholder("Pesan kamu...");
         feedbackInput.setWidthFull();
@@ -428,19 +434,53 @@ public class HomePage extends VerticalLayout {
 
         Button submitButton = new Button("Kirim Feedback");
         submitButton.addClassName("footer-feedback-button");
+        submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         submitButton.addClickListener(event -> {
-            String feedbackMessage = feedbackInput.getValue();
-            if (!feedbackMessage.trim().isEmpty()) {
+            String feedbackMessage = feedbackInput.getValue().trim();
+
+            if (feedbackMessage.isEmpty()) {
+                Notification.show("Masukkan pesan feedback terlebih dahulu", 3000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+
+            // Buat objek feedback
+            FeedbackDAO feedbackDAO = new FeedbackDAO();
+            Feedback feedback = new Feedback();
+            feedback.setMessage(feedbackMessage);
+            feedback.setStatus("unread");
+
+
+            // Set user_id jika user sudah login
+            Users currentUser = (Users) VaadinSession.getCurrent().getAttribute("user");
+            if (currentUser != null) {
+                feedback.setUser_id(currentUser.getId());
+            } else {
+                Notification.show("Anda harus login untuk mengirim feedback.", 3000,
+                        Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 feedbackInput.clear();
-                submitButton.getUI().ifPresent(ui -> {
-                    ui.getPage().executeJs("alert('Terima kasih atas feedback-nya!')");
-                    // TODO: Kirim feedback ke server
-                });
+                return;
+            }
+
+            // Kirim ke database
+            boolean success = feedbackDAO.createFeedback(feedback);
+
+            if (success) {
+                feedbackInput.clear();
+                Notification.show("Terima kasih atas feedback Anda!", 3000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } else {
+                Notification.show("Gagal mengirim feedback. Silakan coba lagi.", 3000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
 
-        feedbackSection.add(feedbackInput, submitButton);
+        feedbackSection.add(feedbackTitle, feedbackInput, submitButton);
         return feedbackSection;
     }
 

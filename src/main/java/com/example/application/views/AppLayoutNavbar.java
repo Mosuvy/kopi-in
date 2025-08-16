@@ -37,7 +37,6 @@ import java.util.List;
 @AnonymousAllowed
 public class AppLayoutNavbar extends AppLayout {
 
-    // TODO: Gunakan logo kopiin
     // TODO: pref dan refactor
 
     private VerticalLayout cartContent;
@@ -50,10 +49,9 @@ public class AppLayoutNavbar extends AppLayout {
     public AppLayoutNavbar() {
         this.logoutDialog = createLogoutDialog();
 
-        H1 title = new H1("KopiIn");
-        title.getStyle().set("font-size", "var(--lumo-font-size-l)")
-                .set("left", "var(--lumo-space-l)").set("margin", "0")
-                .set("position", "absolute");
+        Image title = new Image("/images/logo_kopi-in.png", "Kopi.in Logo");
+        title.setWidth("100px");
+        title.getStyle().set("margin-left", "12px");
 
         HorizontalLayout navigation = getNavigation();
 
@@ -171,7 +169,7 @@ public class AppLayoutNavbar extends AppLayout {
         final double[] subtotal = {cartItems.stream()
                 .mapToDouble(i -> i.getPrice() * i.getQuantity())
                 .sum()};
-        double tax = subtotal[0] * 0.1; // Pajak 10%
+        double tax = subtotal[0] * 0.05; // Pajak 5%
         double total = subtotal[0] + tax;
 
 // Apply discount if promo exists
@@ -189,7 +187,7 @@ public class AppLayoutNavbar extends AppLayout {
                     "-" + formatRupiah(discountAmount)
             ));
         }
-        summaryLayout.add(createSummaryRow("Pajak (10%)", formatRupiah(tax)));
+        summaryLayout.add(createSummaryRow("Pajak (5%)", formatRupiah(tax)));
         summaryLayout.add(createSummaryRow("Total", formatRupiah(total), true));
 
         cartLayout.add(summaryLayout);
@@ -534,19 +532,32 @@ public class AppLayoutNavbar extends AppLayout {
 
         Button cancelButton = new Button("Batal", e -> logoutDialog.close());
         Button logoutButton = new Button("Keluar", e -> {
+            VaadinSession.getCurrent().setAttribute("user", null);
+            VaadinSession.getCurrent().setAttribute("cart", null);
+
             logoutDialog.close();
-            // TODO: Logout
-            getUI().ifPresent(ui -> ui.getPage().setLocation("/login"));
+            UI.getCurrent().getPage().setLocation("/");
+
+            Notification.show("Anda telah logout", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
-        logoutButton.getStyle().set("background-color", "#cd5c5c");
-        logoutButton.getStyle().set("color", "white");
+        logoutButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         logoutButton.getStyle().set("font-weight", "bold");
 
         HorizontalLayout buttons = new HorizontalLayout(cancelButton, logoutButton);
+        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        buttons.setWidthFull();
         logoutDialog.getFooter().add(buttons);
 
         return logoutDialog;
     }
 
+    public static boolean isUserLoggedIn() {
+        return VaadinSession.getCurrent().getAttribute("user") != null;
+    }
+
+    public static Users getCurrentUser() {
+        return (Users) VaadinSession.getCurrent().getAttribute("user");
+    }
 }

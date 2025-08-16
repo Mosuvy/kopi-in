@@ -16,6 +16,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.server.VaadinSession;
 
 @PageTitle("Login - Kopi.in")
 @Route("")
@@ -338,6 +339,8 @@ public class LoginPage extends HorizontalLayout {
                 Users user = validateCredentials(username, password);
                 if (user != null) {
                     showSuccessNotification("Welcome back to Kopi.in!");
+
+                    VaadinSession.getCurrent().setAttribute("user", user);
 
                     // Redirect based on role
                     String role = user.getRole().toLowerCase();
