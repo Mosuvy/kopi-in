@@ -1,9 +1,9 @@
 package com.example.application.views.admin;
 
-import com.example.application.dao.CategoryDAO;
+import com.example.application.dao.CategoryDAOC;
 import com.example.application.dao.ProductDAO;
 import com.example.application.models.Products;
-import com.example.application.models.Categories;
+import com.example.application.models.CategoriesC;
 import com.example.application.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -31,6 +31,8 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,11 +46,11 @@ public class Product extends VerticalLayout {
 
     private Grid<Products> grid;
     private List<Products> products;
-    private List<Categories> categories;
+    private List<CategoriesC> categories;
     private Dialog productDialog;
     private Products currentProduct;
     private ProductDAO productDAO;
-    private CategoryDAO categoryDAO;
+    private CategoryDAOC categoryDAO;
 
     public Product() {
         addClassName("product-view");
@@ -58,7 +60,7 @@ public class Product extends VerticalLayout {
 
         // Initialize DAOs
         productDAO = new ProductDAO();
-        categoryDAO = new CategoryDAO();
+        categoryDAO = new CategoryDAOC();
 
         // Background styling
         getElement().getStyle()
@@ -72,7 +74,7 @@ public class Product extends VerticalLayout {
 
     private void initializeData() {
         // Load data from database
-        categories = categoryDAO.getAllCategories();
+        categories = categoryDAO.getListCategories();
         products = productDAO.getListProduct();
     }
 
@@ -214,9 +216,12 @@ public class Product extends VerticalLayout {
                     .set("color", "white")
                     .set("font-size", "24px");
 
-            String emoji = getProductEmoji(getCategoryName(product.getCategory_id()));
-            Span emojiSpan = new Span(emoji);
-            imageContainer.add(emojiSpan);
+            if (product.getImage_url() != null && !product.getImage_url().isEmpty()) {
+                imageContainer.add(new Image("images/products/" + product.getImage_url(),
+                        getProductEmoji(getCategoryName(product.getCategory_id()))));
+            } else {
+                imageContainer.add(new Span(getProductEmoji(getCategoryName(product.getCategory_id()))));
+            }
 
             return imageContainer;
         }).setHeader("Gambar").setWidth("100px");
@@ -339,10 +344,10 @@ public class Product extends VerticalLayout {
         formLayout.setColspan(descriptionField, 2);
 
         // Category select
-        Select<Categories> categorySelect = new Select<>();
+        Select<CategoriesC> categorySelect = new Select<>();
         categorySelect.setLabel("Kategori");
         categorySelect.setItems(categories);
-        categorySelect.setItemLabelGenerator(Categories::getName);
+        categorySelect.setItemLabelGenerator(CategoriesC::getName);
         categorySelect.setRequiredIndicatorVisible(true);
         if (isEdit) {
             categorySelect.setValue(categories.stream()
@@ -362,12 +367,12 @@ public class Product extends VerticalLayout {
         imagePreview.setVisible(false);
 
         if (isEdit && product.getImage_url() != null && !product.getImage_url().isEmpty()) {
-            imagePreview.setSrc(product.getImage_url());
+            imagePreview.setSrc("images/products/" + product.getImage_url());
             imagePreview.setVisible(true);
         }
 
         upload.addSucceededListener(event -> {
-            // In production, save file to server and get URL
+            // Show preview
             imagePreview.setSrc("data:" + event.getMIMEType() + ";base64," +
                     buffer.getFileData().toString());
             imagePreview.setVisible(true);
@@ -413,12 +418,18 @@ public class Product extends VerticalLayout {
                 return;
             }
 
-            // Get image URL (use existing if not changed)
-            String imageUrl = imagePreview.isVisible() ?
-                    (imagePreview.getSrc().startsWith("data:") ?
-                            "uploaded_image.jpg" : // In production, replace with actual URL
-                            imagePreview.getSrc()) :
-                    "";
+            // Handle image upload
+            String imageUrl = null;
+            if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
+                // New image uploaded
+                imageUrl = saveUploadedImage(buffer, buffer.getFileName(), nameField.getValue());
+                if (imageUrl == null) {
+                    return;
+                }
+            } else if (isEdit && product.getImage_url() != null && !product.getImage_url().isEmpty()) {
+                // Keep existing image
+                imageUrl = product.getImage_url();
+            }
 
             saveProduct(
                     isEdit,
@@ -427,7 +438,7 @@ public class Product extends VerticalLayout {
                     priceField.getValue(),
                     categorySelect.getValue().getId(),
                     imageUrl,
-                    activeCheckbox.getValue() ? 1 : 0 // Convert boolean to int (1/0)
+                    activeCheckbox.getValue() ? 1 : 0
             );
 
             productDialog.close();
@@ -487,6 +498,46 @@ public class Product extends VerticalLayout {
         }
     }
 
+    private String saveUploadedImage(MemoryBuffer buffer, String fileName, String productName) {
+        try {
+            // Create products directory if it doesn't exist
+            String uploadDir = "src/main/resources/META-INF/resources/images/products/";
+            File directory = new File(uploadDir);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            // Generate filename based on product name
+            String sanitizedProductName = productName.toLowerCase()
+                    .replaceAll("[^a-z0-9]", "-")  // Replace special chars with hyphen
+                    .replaceAll("-+", "-")         // Replace multiple hyphens with single
+                    .replaceAll("^-|-$", "");     // Remove leading/trailing hyphens
+
+            // Get file extension
+            String fileExtension = fileName.substring(fileName.lastIndexOf("."));
+
+            // Combine with timestamp to ensure uniqueness
+            String uniqueFileName = sanitizedProductName + "-" +
+                    System.currentTimeMillis() + fileExtension;
+
+            String filePath = uploadDir + uniqueFileName;
+
+            // Save file
+            File file = new File(filePath);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(buffer.getInputStream().readAllBytes());
+            fos.close();
+
+            // Return the filename
+            return uniqueFileName;
+        } catch (Exception e) {
+            Notification.show("Gagal menyimpan gambar: " + e.getMessage(), 5000,
+                            Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return null;
+        }
+    }
+
     private void refreshProductData() {
         products = productDAO.getListProduct();
         grid.setItems(products);
@@ -534,7 +585,7 @@ public class Product extends VerticalLayout {
     private String getCategoryName(String categoryId) {
         return categories.stream()
                 .filter(cat -> cat.getId().equals(categoryId))
-                .map(Categories::getName)
+                .map(CategoriesC::getName)
                 .findFirst()
                 .orElse("Unknown");
     }

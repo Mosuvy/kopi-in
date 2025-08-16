@@ -586,8 +586,8 @@ public class AdminDAO {
                 while (resultSet.next()) {
                     Orders order = new Orders();
                     order.setId(resultSet.getString("id"));
-                    order.setUser_id(resultSet.getString("user_id"));
-                    order.setCreated_by(resultSet.getString("created_by"));
+                    order.setUser_id(Integer.valueOf(resultSet.getString("user_id")));
+                    order.setCreated_by(Integer.valueOf(resultSet.getString("created_by")));
                     order.setStatus(resultSet.getString("status"));
                     order.setOrder_type(resultSet.getString("order_type"));
                     order.setTotal_price(resultSet.getDouble("total_price"));
