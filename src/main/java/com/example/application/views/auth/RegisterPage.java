@@ -269,7 +269,7 @@ public class RegisterPage extends HorizontalLayout {
         );
 
         loginLink.addClickListener(event -> {
-            getUI().ifPresent(ui -> ui.navigate("/"));
+            redirectToLogin();
         });
 
         loginLayout.add(loginText, loginLink);
@@ -343,7 +343,7 @@ public class RegisterPage extends HorizontalLayout {
         if (success) {
             Notification.show("Registrasi berhasil!", 3000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            getUI().ifPresent(ui -> ui.navigate("login"));
+            redirectToLogin();
         } else {
             Notification.show("Registrasi gagal!", 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);

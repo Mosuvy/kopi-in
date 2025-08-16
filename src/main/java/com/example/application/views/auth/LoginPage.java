@@ -350,7 +350,7 @@ public class LoginPage extends HorizontalLayout {
                                 ui.navigate("kasir/dashboard");
                                 break;
                             case "customer":
-                                ui.navigate("//");
+                                ui.navigate("customer");
                                 break;
                             default:
                                 ui.navigate("login"); // fallback

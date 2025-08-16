@@ -143,27 +143,25 @@ public class PromoDAO {
 
     public Promo getPromoByCode(String code) {
         try {
-            return executeQuery(() -> {
-                Promo promo = null;
-                String query = "SELECT * FROM Promo WHERE code = ? AND (end_date >= CURRENT_DATE OR end_date IS NULL)";
-                preparedStatement = connection.prepareStatement(query);
-                preparedStatement.setString(1, code);
-                resultSet = preparedStatement.executeQuery();
-
-                if (resultSet.next()) {
-                    promo = new Promo();
-                    promo.setId(resultSet.getString("id"));
-                    promo.setName(resultSet.getString("name"));
-                    promo.setCode(resultSet.getString("code"));
-                    promo.setDescription(resultSet.getString("description"));
-                    promo.setDiscount_value(resultSet.getDouble("discount_value"));
-                    promo.setMin_purchase(resultSet.getDouble("min_purchase"));
-                    promo.setStart_date(resultSet.getDate("start_date"));
-                    promo.setEnd_date(resultSet.getDate("end_date"));
-                }
-
-                return promo;
-            });
+            Promo promo = null;
+            String query = "SELECT * FROM Promo WHERE code = ? AND (end_date >= CURRENT_DATE OR end_date IS NULL)";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setString(1, code);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                promo = new Promo();
+                promo.setId(rs.getString("id"));
+                promo.setName(rs.getString("name"));
+                promo.setCode(rs.getString("code"));
+                promo.setDescription(rs.getString("description"));
+                promo.setDiscount_value(rs.getDouble("discount_value"));
+                promo.setMin_purchase(rs.getDouble("min_purchase"));
+                promo.setStart_date(rs.getDate("start_date"));
+                promo.setEnd_date(rs.getDate("end_date"));
+            }
+            rs.close();
+            stmt.close();
+            return promo;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
