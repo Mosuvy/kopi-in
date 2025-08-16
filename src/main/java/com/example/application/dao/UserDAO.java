@@ -164,20 +164,10 @@ public class UserDAO {
     public boolean updateUsers(Users user) {
         try {
             String dbRole = convertRoleToDatabaseFormat(user.getRole());
-            String passwordToUpdate = user.getPassword();
 
-            if (!passwordToUpdate.isEmpty()) {
-                if (!validatePassword(passwordToUpdate)) {
-                    Notification.show("Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, dan karakter khusus",
-                                    5000, Notification.Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    return false;
-                }
-                passwordToUpdate = hashPassword(passwordToUpdate);
-            } else {
-                Users existingUser = getUsers(user.getId());
-                passwordToUpdate = existingUser.getPassword();
-            }
+            // Ambil password yang ada di database, jangan ubah password
+            Users existingUser = getUsers(user.getId());
+            String passwordToUpdate = existingUser.getPassword();
 
             statement = connection.prepareStatement(
                     "UPDATE Users SET username = ?, email = ?, password = ?, role = ?, is_active = ? " +
@@ -186,7 +176,7 @@ public class UserDAO {
 
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
-            statement.setString(3, passwordToUpdate);
+            statement.setString(3, passwordToUpdate); // Gunakan password yang sudah ada
             statement.setString(4, dbRole);
             statement.setInt(5, user.getIs_active());
             statement.setString(6, user.getId());
