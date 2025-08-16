@@ -2,6 +2,7 @@ package com.example.application.views;
 
 import com.example.application.models.CartItem;
 import com.example.application.models.ProductsC;
+import com.example.application.models.Promo;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -13,6 +14,8 @@ import com.vaadin.flow.component.crud.CrudEditorPosition;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
@@ -25,6 +28,8 @@ import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import com.example.application.dao.PromoDAO;
+import com.example.application.models.Users;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +40,12 @@ public class AppLayoutNavbar extends AppLayout {
     // TODO: Gunakan logo kopiin
     // TODO: pref dan refactor
 
+    private VerticalLayout cartContent;
     private Dialog logoutDialog;
     private Dialog cartDialog;
+
+    private Promo activePromo = null;
+    private double discountAmount = 0.0;
 
     public AppLayoutNavbar() {
         this.logoutDialog = createLogoutDialog();
@@ -66,7 +75,7 @@ public class AppLayoutNavbar extends AppLayout {
                 .set("margin", "0");
         cartDialog.getElement().getThemeList().add("right-side-dialog");
 
-        VerticalLayout cartContent = getCartContent(getCartFromSession());
+        cartContent = getCartContent(getCartFromSession());
         cartDialog.add(cartContent);
 
         // CART BUTTON
@@ -93,11 +102,17 @@ public class AppLayoutNavbar extends AppLayout {
         cartLayout.setWidth("100%");
 
         // Header
-        H2 header = new H2("Your Cart");
+        H2 header = new H2("Keranjang Anda");
         cartLayout.add(header);
 
         if (cartItems == null || cartItems.isEmpty()) {
             cartLayout.add(new Paragraph("Your cart is empty"));
+
+            Button continueButton = new Button("Continue Shopping", e -> {
+                cartDialog.close();
+            });
+
+            cartLayout.add(continueButton);
             return cartLayout;
         }
 
@@ -120,7 +135,7 @@ public class AppLayoutNavbar extends AppLayout {
             VerticalLayout infoLayout = new VerticalLayout();
             infoLayout.setSpacing(false);
             infoLayout.add(new Span(item.getProductName()));
-            infoLayout.add(new Span(String.format("$%.2f", item.getPrice())));
+            infoLayout.add(new Span(formatRupiah(item.getPrice())));
 
             // Kontrol jumlah
             IntegerField quantityField = new IntegerField();
@@ -128,18 +143,16 @@ public class AppLayoutNavbar extends AppLayout {
             quantityField.setMin(1);
             quantityField.setMax(99);
             quantityField.setWidth("70px");
+// Di dalam loop item cart, modifikasi quantity field:
             quantityField.addValueChangeListener(e -> {
                 item.setQuantity(e.getValue());
-                // Di sini Anda bisa menambahkan logic untuk update cart
-                // misalnya: cartService.updateQuantity(item.getProductId(), e.getValue());
+                updateCart(); // Panggil updateCart() untuk refresh tampilan
             });
 
-            // Tombol hapus
+// Modifikasi tombol remove:
             Button removeButton = new Button(VaadinIcon.TRASH.create(), e -> {
-                // Di sini Anda bisa menambahkan logic untuk remove item dari cart
-                // misalnya: cartService.removeItem(item.getProductId());
                 cartItems.remove(item);
-                getUI().ifPresent(ui -> ui.getPage().reload());
+                updateCart(); // Panggil updateCart() untuk refresh tampilan
             });
             removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
 
@@ -155,23 +168,98 @@ public class AppLayoutNavbar extends AppLayout {
         }
 
         // Ringkasan belanja
-        double subtotal = cartItems.stream().mapToDouble(i -> i.getPrice() * i.getQuantity()).sum();
-        double shipping = 3.95; // Contoh biaya pengiriman
-        double tax = subtotal * 0.1; // Contoh pajak 10%
-        double total = subtotal + shipping + tax;
+        final double[] subtotal = {cartItems.stream()
+                .mapToDouble(i -> i.getPrice() * i.getQuantity())
+                .sum()};
+        double tax = subtotal[0] * 0.1; // Pajak 10%
+        double total = subtotal[0] + tax;
+
+// Apply discount if promo exists
+        if (activePromo != null) {
+            discountAmount = subtotal[0] * activePromo.getDiscount_value();
+            total -= discountAmount;
+        }
 
         VerticalLayout summaryLayout = new VerticalLayout();
         summaryLayout.setSpacing(false);
-        summaryLayout.add(createSummaryRow("Subtotal", String.format("$%.2f", subtotal)));
-        summaryLayout.add(createSummaryRow("Shipping", String.format("$%.2f", shipping)));
-        summaryLayout.add(createSummaryRow("Tax", String.format("$%.2f", tax)));
-        summaryLayout.add(createSummaryRow("Total", String.format("$%.2f", total), true));
+        summaryLayout.add(createSummaryRow("Subtotal", formatRupiah(subtotal[0])));
+        if (activePromo != null) {
+            summaryLayout.add(createSummaryRow(
+                    "Diskon (" + (activePromo.getDiscount_value() * 100) + "%)",
+                    "-" + formatRupiah(discountAmount)
+            ));
+        }
+        summaryLayout.add(createSummaryRow("Pajak (10%)", formatRupiah(tax)));
+        summaryLayout.add(createSummaryRow("Total", formatRupiah(total), true));
 
         cartLayout.add(summaryLayout);
 
         // Bagian kupon
         TextField couponField = new TextField("Coupon Code");
         Button applyButton = new Button("Apply");
+
+        applyButton.addClickListener(e -> {
+            String couponCode = couponField.getValue();
+
+            if (couponCode == null || couponCode.trim().isEmpty()) {
+                Notification.show("Masukkan kode promo terlebih dahulu", 3000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+
+            // Panggil DAO untuk cek promo
+            PromoDAO promoDAO = new PromoDAO();
+            Promo promo = promoDAO.getPromoByCode(couponCode);
+
+            if (promo == null) {
+                Notification.show("Kode promo tidak valid atau sudah kadaluarsa", 3000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+
+            // Hitung subtotal untuk cek minimal pembelian
+            subtotal[0] = cartItems.stream()
+                    .mapToDouble(i -> i.getPrice() * i.getQuantity())
+                    .sum();
+
+            if (subtotal[0] < promo.getMin_purchase()) {
+                Notification.show("Minimal pembelian untuk promo ini adalah " +
+                                        formatRupiah(promo.getMin_purchase()), 3000,
+                                Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+
+            // Set promo aktif
+            this.activePromo = promo;
+            this.discountAmount = subtotal[0] * promo.getDiscount_value();
+
+            Notification.show("Promo berhasil diterapkan! Diskon " +
+                                    (promo.getDiscount_value() * 100) + "%", 3000,
+                            Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+            // Update tampilan cart
+            updateCart();
+        });
+
+        // Di bagian kupon, setelah applyButton
+        if (activePromo != null) {
+            Button removePromoButton = new Button("Hapus Promo", click -> {
+                activePromo = null;
+                discountAmount = 0.0;
+                couponField.clear();
+                updateCart();
+                Notification.show("Promo dihapus", 2000,
+                        Notification.Position.MIDDLE);
+            });
+            removePromoButton.addThemeVariants(ButtonVariant.LUMO_ERROR,
+                    ButtonVariant.LUMO_TERTIARY);
+            cartLayout.add(removePromoButton);
+        }
+
         HorizontalLayout couponLayout = new HorizontalLayout(couponField, applyButton);
         couponLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
         cartLayout.add(couponLayout);
@@ -182,7 +270,7 @@ public class AppLayoutNavbar extends AppLayout {
         });
 
         Button checkoutButton = new Button("Checkout", e -> {
-            // Navigasi ke halaman checkout
+            cartDialog.close();
             UI.getCurrent().navigate("checkout");
         });
         checkoutButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -194,6 +282,19 @@ public class AppLayoutNavbar extends AppLayout {
         cartLayout.add(buttonsLayout);
 
         return cartLayout;
+    }
+
+    public void updateCart() {
+        UI.getCurrent().access(() -> {
+            cartDialog.removeAll();
+            VerticalLayout newCartContent = getCartContent(getCartFromSession());
+            cartDialog.add(newCartContent);
+
+            // Jika dialog belum terbuka, kita bisa membukanya otomatis
+            if (!cartDialog.isOpened()) {
+                cartDialog.open();
+            }
+        });
     }
 
     private HorizontalLayout createSummaryRow(String label, String value) {
@@ -217,44 +318,140 @@ public class AppLayoutNavbar extends AppLayout {
         return row;
     }
 
+    public static String formatRupiah(double amount) {
+        return String.format("Rp%,.0f", amount).replace(",", ".");
+    }
+
     private Avatar getAvatar() {
         Avatar avatar = new Avatar();
-        avatar.setName("User"); // Set nama default
         avatar.addClassNames(LumoUtility.Display.FLEX,
                 LumoUtility.AlignItems.CENTER, LumoUtility.JustifyContent.CENTER);
         avatar.getStyle().set("background-color", "var(--lumo-contrast-5pct)")
                 .set("margin-right", "var(--lumo-space-l)")
                 .set("cursor", "pointer");
 
+        // Cek apakah user sudah login (contoh: dari session)
+        boolean isLoggedIn = VaadinSession.getCurrent().getAttribute("user") != null;
+
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.setTarget(avatar);
         contextMenu.setOpenOnClick(true);
 
-        contextMenu.addItem(createUserInfo(), e -> {
-        }).getElement().setAttribute("disabled", "true");
+        if (isLoggedIn) {
+            // Jika sudah login
+            Users user = (Users) VaadinSession.getCurrent().getAttribute("user");
+            avatar.setName(user.getUsername());
 
-        contextMenu.add(new Hr());
+//             User info section
+            contextMenu.addItem(createUserInfo(user), e -> {
+            }).getElement().setAttribute("disabled", "true");
 
-        // Menu Profile
-        contextMenu.addItem(createMenuItem(VaadinIcon.USER.create(), "Profile"), e -> {
-            // TODO: Implement navigation to profile page
-            System.out.println("Navigate to Profile");
-        });
+            contextMenu.add(new Hr());
 
-        // Menu History Order
-        contextMenu.addItem(createMenuItem(VaadinIcon.CLIPBOARD_TEXT.create(), "History Order"), e -> {
-            // TODO: Implement navigation to history page
-            System.out.println("Navigate to History Order");
-        });
+            // Menu Profile
+            contextMenu.addItem(createMenuItem(VaadinIcon.USER.create(), "Profile"), e -> {
+                UI.getCurrent().navigate("profile");
+            });
 
-        contextMenu.add(new Hr());
+            // Menu History Order
+            contextMenu.addItem(createMenuItem(VaadinIcon.CLIPBOARD_TEXT.create(), "History Order"), e -> {
+                UI.getCurrent().navigate("history");
+            });
 
-        // Menu Logout
-        contextMenu.addItem(createMenuItem(VaadinIcon.SIGN_OUT.create(), "Logout"), e -> {
-            logoutDialog.open();
-        });
+            contextMenu.add(new Hr());
+
+            // Menu Logout
+            contextMenu.addItem(createMenuItem(VaadinIcon.SIGN_OUT.create(), "Logout"), e -> {
+                logoutDialog.open();
+            });
+        } else {
+            // Jika belum login
+            avatar.setName("Guest");
+
+            // Guest info section
+            contextMenu.addItem(createGuestInfo(), e -> {
+            }).getElement().setAttribute("disabled", "true");
+
+            contextMenu.add(new Hr());
+
+            // Menu Login
+            contextMenu.addItem(createMenuItem(VaadinIcon.SIGN_IN.create(), "Login"), e -> {
+                UI.getCurrent().navigate("/");
+            });
+
+            // Menu Register
+            contextMenu.addItem(createMenuItem(VaadinIcon.USER.create(), "Register"), e -> {
+                UI.getCurrent().navigate("register");
+            });
+        }
 
         return avatar;
+    }
+
+    private HorizontalLayout createUserInfo(Users user) {
+        HorizontalLayout userInfo = new HorizontalLayout();
+        userInfo.setSpacing(false);
+        userInfo.setPadding(false);
+        userInfo.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Avatar smallAvatar = new Avatar();
+        smallAvatar.setName(user.getUsername());
+        smallAvatar.setWidth("32px");
+        smallAvatar.setHeight("32px");
+
+        Span userName = new Span(user.getUsername());
+        userName.addClassNames(LumoUtility.FontWeight.SEMIBOLD);
+
+        Span userEmail = new Span(user.getEmail());
+        userEmail.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY);
+
+        userInfo.add(smallAvatar);
+
+        // Container untuk nama dan email
+        var userDetails = new HorizontalLayout();
+        userDetails.setSpacing(false);
+        userDetails.setPadding(false);
+        userDetails.getStyle().set("flex-direction", "column")
+                .set("align-items", "flex-start")
+                .set("margin-left", "var(--lumo-space-s)");
+
+        userDetails.add(userName, userEmail);
+        userInfo.add(userDetails);
+
+        return userInfo;
+    }
+
+    private HorizontalLayout createGuestInfo() {
+        HorizontalLayout guestInfo = new HorizontalLayout();
+        guestInfo.setSpacing(false);
+        guestInfo.setPadding(false);
+        guestInfo.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Avatar smallAvatar = new Avatar();
+        smallAvatar.setName("Guest");
+        smallAvatar.setWidth("32px");
+        smallAvatar.setHeight("32px");
+
+        Span guestText = new Span("Guest User");
+        guestText.addClassNames(LumoUtility.FontWeight.SEMIBOLD);
+
+        Span loginPrompt = new Span("Login to access features");
+        loginPrompt.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY);
+
+        guestInfo.add(smallAvatar);
+
+        // Container untuk text
+        var guestDetails = new HorizontalLayout();
+        guestDetails.setSpacing(false);
+        guestDetails.setPadding(false);
+        guestDetails.getStyle().set("flex-direction", "column")
+                .set("align-items", "flex-start")
+                .set("margin-left", "var(--lumo-space-s)");
+
+        guestDetails.add(guestText, loginPrompt);
+        guestInfo.add(guestDetails);
+
+        return guestInfo;
     }
 
     private HorizontalLayout createUserInfo() {

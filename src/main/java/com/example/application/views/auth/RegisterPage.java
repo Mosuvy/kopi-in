@@ -256,6 +256,7 @@ public class RegisterPage extends HorizontalLayout {
         loginLink.getStyle().set("border", "none");
         loginLink.getStyle().set("outline", "none");
 
+        // hover effect for login link
         loginLink.getElement().executeJs(
                 "this.addEventListener('mouseenter', () => {" +
                         "  this.style.textDecoration = 'underline';" +
@@ -268,7 +269,7 @@ public class RegisterPage extends HorizontalLayout {
         );
 
         loginLink.addClickListener(event -> {
-            getUI().ifPresent(ui -> ui.navigate("login"));
+            getUI().ifPresent(ui -> ui.navigate("/"));
         });
 
         loginLayout.add(loginText, loginLink);
@@ -347,5 +348,36 @@ public class RegisterPage extends HorizontalLayout {
             Notification.show("Registrasi gagal!", 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
+    }
+
+    private boolean isValidEmail(String email) {
+        return email.contains("@") && email.contains(".");
+    }
+
+    private boolean isUsernameAvailable(String username) {
+        // Simple demo validation - replace with actual database check
+        return !("admin".equals(username) || "user".equals(username) || "demo".equals(username));
+    }
+
+    private void clearForm() {
+        usernameField.clear();
+        emailField.clear();
+        passwordField.clear();
+        confirmPasswordField.clear();
+    }
+
+    private void redirectToLogin() {
+        // Redirect to login page after successful registration
+        getUI().ifPresent(ui -> ui.navigate("/"));
+    }
+
+    private void showErrorNotification(String message) {
+        Notification notification = Notification.show(message, 4000, Notification.Position.TOP_CENTER);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
+    private void showSuccessNotification(String message) {
+        Notification notification = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 }

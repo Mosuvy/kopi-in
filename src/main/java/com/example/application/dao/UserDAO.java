@@ -23,15 +23,16 @@ public class UserDAO {
         connection = getConnection();
     }
 
+    // -------------------- Users
     public ArrayList<Users> getListUsers() {
         listUsers = new ArrayList<>();
         try {
-            statement = connection.prepareStatement("SELECT * FROM users",
+            statement = connection.prepareStatement("SELECT * FROM Users",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Users = new Users();
-                Users.setId(String.valueOf(resultSet.getInt("id")));
+                Users.setId(resultSet.getString("id"));
                 Users.setUsername(resultSet.getString("username"));
                 Users.setEmail(resultSet.getString("email"));
                 Users.setPassword(resultSet.getString("password"));
@@ -97,13 +98,13 @@ public class UserDAO {
 
     public Users getUsers(String id) {
         try {
-            statement = connection.prepareStatement("SELECT * FROM users WHERE id = ?",
+            statement = connection.prepareStatement("SELECT * FROM Users WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setInt(1, Integer.parseInt(id));
+            statement.setString(1, id);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 Users = new Users();
-                Users.setId(String.valueOf(resultSet.getInt("id")));
+                Users.setId(resultSet.getString("id"));
                 Users.setUsername(resultSet.getString("username"));
                 Users.setEmail(resultSet.getString("email"));
                 Users.setPassword(resultSet.getString("password"));
@@ -130,7 +131,7 @@ public class UserDAO {
             String hashedPassword = hashPassword(user.getPassword());
 
             statement = connection.prepareStatement(
-                    "INSERT INTO users (username, email, password, role, is_active, created_at) " +
+                    "INSERT INTO Users (username, email, password, role, is_active, created_at) " +
                             "VALUES (?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
 
@@ -179,7 +180,7 @@ public class UserDAO {
             }
 
             statement = connection.prepareStatement(
-                    "UPDATE users SET username = ?, email = ?, password = ?, role = ?, is_active = ? " +
+                    "UPDATE Users SET username = ?, email = ?, password = ?, role = ?, is_active = ? " +
                             "WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
@@ -188,7 +189,7 @@ public class UserDAO {
             statement.setString(3, passwordToUpdate);
             statement.setString(4, dbRole);
             statement.setInt(5, user.getIs_active());
-            statement.setInt(6, Integer.parseInt(user.getId()));
+            statement.setString(6, user.getId());
 
             int affectedRows = statement.executeUpdate();
             return affectedRows > 0;
@@ -202,9 +203,9 @@ public class UserDAO {
 
     public boolean deleteUsers(String id) {
         try {
-            statement = connection.prepareStatement("DELETE FROM users WHERE id = ?",
+            statement = connection.prepareStatement("DELETE FROM Users WHERE id = ?",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            statement.setInt(1, Integer.parseInt(id));
+            statement.setString(1, id);
             int affectedRows = statement.executeUpdate();
             return affectedRows > 0;
         } catch (Exception e) {
@@ -212,18 +213,42 @@ public class UserDAO {
         }
     }
 
+    public Users getGuestUser(String id) {
+        listUsers = new ArrayList<>();
+        try {
+            statement = connection.prepareStatement("SELECT * FROM Users WHERE id = 1 LIMIT 1",
+                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            statement.setString(1, id);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Users = new Users();
+                Users.setId(resultSet.getString("id"));
+                Users.setUsername(resultSet.getString("username"));
+                Users.setEmail(resultSet.getString("email"));
+                Users.setPassword(resultSet.getString("password"));
+                Users.setRole(resultSet.getString("role"));
+                Users.setIs_active(resultSet.getInt("is_active"));
+                Users.setCreated_at(resultSet.getTimestamp("created_at"));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return Users;
+    }
+
+    // -------------------- Customers
     public Users login(String username, String password) {
         Users user = null;
         try {
             String hashedPassword = hashPassword(password);
-            String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+            String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
             statement = connection.prepareStatement(sql);
             statement.setString(1, username);
             statement.setString(2, hashedPassword);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 user = new Users();
-                user.setId(String.valueOf(resultSet.getInt("id")));
+                user.setId(String.valueOf(resultSet.getString("id")));
                 user.setUsername(resultSet.getString("username"));
                 user.setEmail(resultSet.getString("email"));
                 user.setPassword(resultSet.getString("password"));
