@@ -295,7 +295,7 @@ public class RegisterPage extends HorizontalLayout {
         // Click handler for login link
         loginLink.addClickListener(event -> {
             // Navigate to login page
-            getUI().ifPresent(ui -> ui.navigate("login"));
+            getUI().ifPresent(ui -> ui.navigate("/"));
         });
 
         loginLayout.add(loginText, loginLink);
@@ -425,7 +425,7 @@ public class RegisterPage extends HorizontalLayout {
 
     private void redirectToLogin() {
         // Redirect to login page after successful registration
-        getUI().ifPresent(ui -> ui.navigate("login"));
+        getUI().ifPresent(ui -> ui.navigate("/"));
     }
 
     private void showErrorNotification(String message) {

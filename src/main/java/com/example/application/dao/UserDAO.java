@@ -117,6 +117,29 @@ public class UserDAO {
         }
     }
 
+    public Users getGuestUser(String id) {
+        listUsers = new ArrayList<>();
+        try {
+            statement = connection.prepareStatement("SELECT * FROM Users WHERE id = 1 LIMIT 1",
+                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            statement.setString(1, id);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Users = new Users();
+                Users.setId(resultSet.getString("id"));
+                Users.setUsername(resultSet.getString("username"));
+                Users.setEmail(resultSet.getString("email"));
+                Users.setPassword(resultSet.getString("password"));
+                Users.setRole(resultSet.getString("role"));
+                Users.setIs_active(resultSet.getInt("is_active"));
+                Users.setCreated_at(resultSet.getTimestamp("created_at"));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return Users;
+    }
+
     // -------------------- Customers
     public ArrayList<Customer> getListCustomer() {
         listCustomer = new ArrayList<>();

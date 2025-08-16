@@ -61,4 +61,33 @@ public class PromoDAO extends BaseDAO {
             return null;
         }
     }
+
+    public Promo getPromoByCode(String code) {
+        try {
+            return executeQuery(() -> {
+                Promo promo = null;
+                String query = "SELECT * FROM Promo WHERE code = ? AND (end_date >= CURRENT_DATE OR end_date IS NULL)";
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, code);
+                resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    promo = new Promo();
+                    promo.setId(resultSet.getString("id"));
+                    promo.setName(resultSet.getString("name"));
+                    promo.setCode(resultSet.getString("code"));
+                    promo.setDescription(resultSet.getString("description"));
+                    promo.setDiscount_value(resultSet.getDouble("discount_value"));
+                    promo.setMin_purchase(resultSet.getDouble("min_purchase"));
+                    promo.setStart_date(resultSet.getDate("start_date"));
+                    promo.setEnd_date(resultSet.getDate("end_date"));
+                }
+
+                return promo;
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

@@ -6,10 +6,13 @@ import com.example.application.models.CartItem;
 import com.example.application.models.CategoriesC;
 import com.example.application.models.ProductsC;
 import com.example.application.views.AppLayoutNavbar;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -33,13 +36,7 @@ public class HomePage extends VerticalLayout {
     private final CategoryDAOC categoryDAO = new CategoryDAOC();
     private final List<CartItem> cartItems = new ArrayList<>();
 
-
-    // TODO: Cek apakah user sudah login
-    // - Jika login : tampilkan semua fitur
-    // - Jika guest : tampilkan mode guest
-
     // TODO: Tampilan Home
-    // - Menu
     // - Profil Pengguna
     // - History Pemesanan
     // - Logout
@@ -48,15 +45,10 @@ public class HomePage extends VerticalLayout {
     // - Jika login : hubungkan ke akun
     // - Jika guest : simpan dengan akun guest
 
-    // TODO: Fitur Profil Pengguna
-    // - Jika login : tampilkan tombol "Profil"
-    // - Jika guest : tampilkan tombol "Login / Register"
-
     // TODO: Fitur History Pemesanan
     // - Jika login: tampilkan riwayat transaksi sebelumnya
     // - Jika guest: tidak tampil
 
-    // TODO: Fitur Logout
 
     // field
     TextField searchField = new TextField();
@@ -224,6 +216,7 @@ public class HomePage extends VerticalLayout {
         searchField.addValueChangeListener(e -> applyFilter(searchField.getValue(), kategoriFilter.getValue()));
         kategoriFilter.addValueChangeListener(e -> applyFilter(searchField.getValue(), kategoriFilter.getValue()));
         removeCategory.addClickListener(e -> {
+            searchField.setValue("");
             kategoriFilter.setValue("Semua");
             applyFilter(searchField.getValue(), "Semua");
         });
@@ -298,8 +291,9 @@ public class HomePage extends VerticalLayout {
     private Div createProductCard(String id, String nama, String imageUrl, double harga, String kategori) {
         Div card = new Div();
         card.addClassName("product-card");
+        card.getElement().setAttribute("product-id", id); // Tambahkan atribut product-id
 
-        // Class kategori untuk filtering (contoh: kategori-kopi-hitam)
+        // Class kategori untuk filtering
         String kategoriClass = "kategori-" + kategori.toLowerCase().replaceAll("\\s+", "-");
         card.addClassName(kategoriClass);
 
@@ -308,9 +302,9 @@ public class HomePage extends VerticalLayout {
         img.setAlt(nama);
 
         if (imageUrl == null || imageUrl.isEmpty()) {
-            img.setSrc("https://placehold.co/400");
+            img.setSrc("https://placehold.co/400?text=No+Image");
         } else {
-            img.setSrc(imageUrl);
+            img.setSrc("images/products" + imageUrl);
         }
 
         H3 title = new H3(nama);
@@ -323,28 +317,52 @@ public class HomePage extends VerticalLayout {
         addToCart.addClassName("add-to-cart-button");
 
         addToCart.addClickListener(event -> {
-            addToCart.getUI().ifPresent(ui -> {
-                ui.getPage().executeJs("alert('Produk " + id +" berhasil ditambahkan ke keranjang!')");
-                Optional<CartItem> existingItem = cartItems.stream()
-                        .filter(item -> item.getProductId().equals(id))
-                        .findFirst();
-
-                if (existingItem.isPresent()) {
-                    // Tambah quantity
-                    CartItem item = existingItem.get();
-                    item.setQuantity(item.getQuantity() + 1);
-                } else {
-                    // Tambah item baru
-                    CartItem newItem = new CartItem(id, nama, harga, 1, imageUrl);
-                    cartItems.add(newItem);
-                }
-
-                VaadinSession.getCurrent().setAttribute("cart", cartItems);
-            });
+            addProductToCart(id, nama, harga, imageUrl);
+            showSuccessNotification(nama + " ditambahkan ke keranjang");
         });
 
         card.add(img, title, price, addToCart);
         return card;
+    }
+
+    // Method untuk menambahkan produk ke cart
+    private void addProductToCart(String productId, String productName, double price, String imageUrl) {
+        List<CartItem> cartItems = getCartFromSession();
+
+        Optional<CartItem> existingItem = cartItems.stream()
+                .filter(item -> item.getProductId().equals(productId))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            CartItem item = existingItem.get();
+            item.setQuantity(item.getQuantity() + 1);
+        } else {
+            CartItem newItem = new CartItem(productId, productName, price, 1, imageUrl);
+            cartItems.add(newItem);
+        }
+
+        VaadinSession.getCurrent().setAttribute("cart", cartItems);
+
+        // Panggil method untuk update cart dialog
+        UI.getCurrent().access(() -> {
+            AppLayoutNavbar navbar = (AppLayoutNavbar) UI.getCurrent().getChildren()
+                    .filter(component -> component instanceof AppLayoutNavbar)
+                    .findFirst()
+                    .orElse(null);
+
+            if (navbar != null) {
+                navbar.updateCart();
+            }
+        });
+    }
+
+    private List<CartItem> getCartFromSession() {
+        List<CartItem> cart = (List<CartItem>) VaadinSession.getCurrent().getAttribute("cart");
+        if (cart == null) {
+            cart = new ArrayList<>();
+            VaadinSession.getCurrent().setAttribute("cart", cart);
+        }
+        return cart;
     }
 
     // ================== Footer ==================
@@ -424,5 +442,12 @@ public class HomePage extends VerticalLayout {
 
         feedbackSection.add(feedbackInput, submitButton);
         return feedbackSection;
+    }
+
+    private void showSuccessNotification(String message) {
+        Notification notification = new Notification(message, 3000);
+        notification.setPosition(Notification.Position.TOP_CENTER);
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        notification.open();
     }
 }
