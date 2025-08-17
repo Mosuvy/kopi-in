@@ -1,7 +1,10 @@
 package com.example.application.dao;
 
+import com.example.application.models.TransactionHistory;
 import com.example.application.models.Transactions;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransactionsDAO extends BaseDAO {
 
@@ -26,7 +29,6 @@ public class TransactionsDAO extends BaseDAO {
         }
     }
 
-
     public Transactions getTransactionByOrderId(String orderId) {
         try {
             return executeQuery(() -> {
@@ -44,6 +46,82 @@ public class TransactionsDAO extends BaseDAO {
                     transaction.setChange_returned(resultSet.getDouble("change_returned"));
                     transaction.setPaid_at(resultSet.getTimestamp("paid_at"));
                     return transaction;
+                }
+                return null;
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public List<TransactionHistory> getTransactionHistoryByUserId(int userId) {
+        try {
+            return executeQuery(() -> {
+                List<TransactionHistory> historyList = new ArrayList<>();
+
+                String query = "SELECT o.id AS order_id, t.id AS transaction_id, o.user_id, " +
+                        "o.status, t.payment_method, o.final_price AS total_price, " +
+                        "t.paid_amount, t.change_returned, o.created_at, t.paid_at " +
+                        "FROM Orders o " +
+                        "JOIN Transactions t ON o.id = t.order_id " +
+                        "WHERE o.user_id = ? " +
+                        "ORDER BY o.created_at DESC";
+
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, userId);
+                resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    TransactionHistory history = new TransactionHistory();
+                    history.setOrderId(resultSet.getString("order_id"));
+                    history.setTransactionId(resultSet.getString("transaction_id"));
+                    history.setUserId(resultSet.getInt("user_id"));
+                    history.setStatus(resultSet.getString("status"));
+                    history.setPaymentMethod(resultSet.getString("payment_method"));
+                    history.setTotalPrice(resultSet.getDouble("total_price"));
+                    history.setPaidAmount(resultSet.getDouble("paid_amount"));
+                    history.setChangeReturned(resultSet.getDouble("change_returned"));
+                    history.setCreatedAt(resultSet.getTimestamp("created_at"));
+                    history.setPaidAt(resultSet.getTimestamp("paid_at"));
+
+                    historyList.add(history);
+                }
+                return historyList;
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public TransactionHistory getTransactionHistoryByOrderId(String orderId) {
+        try {
+            return executeQuery(() -> {
+                String query = "SELECT o.id AS order_id, t.id AS transaction_id, o.user_id, " +
+                        "o.status, t.payment_method, o.final_price AS total_price, " +
+                        "t.paid_amount, t.change_returned, o.created_at, t.paid_at " +
+                        "FROM Orders o " +
+                        "JOIN Transactions t ON o.id = t.order_id " +
+                        "WHERE o.id = ?";
+
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, orderId);
+                resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    TransactionHistory history = new TransactionHistory();
+                    history.setOrderId(resultSet.getString("order_id"));
+                    history.setTransactionId(resultSet.getString("transaction_id"));
+                    history.setUserId(resultSet.getInt("user_id"));
+                    history.setStatus(resultSet.getString("status"));
+                    history.setPaymentMethod(resultSet.getString("payment_method"));
+                    history.setTotalPrice(resultSet.getDouble("total_price"));
+                    history.setPaidAmount(resultSet.getDouble("paid_amount"));
+                    history.setChangeReturned(resultSet.getDouble("change_returned"));
+                    history.setCreatedAt(resultSet.getTimestamp("created_at"));
+                    history.setPaidAt(resultSet.getTimestamp("paid_at"));
+                    return history;
                 }
                 return null;
             });

@@ -351,6 +351,12 @@ public class AppLayoutNavbar extends AppLayout {
 
             contextMenu.add(new Hr());
 
+            // Menu Menu
+            contextMenu.addItem(createMenuItem(VaadinIcon.MENU.create(), "Menu"), e -> {
+                UI.getCurrent().navigate("customer");
+            });
+
+
             // Menu Profile
             contextMenu.addItem(createMenuItem(VaadinIcon.USER.create(), "Profile"), e -> {
                 UI.getCurrent().navigate("profile");
@@ -358,7 +364,7 @@ public class AppLayoutNavbar extends AppLayout {
 
             // Menu History Order
             contextMenu.addItem(createMenuItem(VaadinIcon.CLIPBOARD_TEXT.create(), "History Order"), e -> {
-                UI.getCurrent().navigate("history");
+                UI.getCurrent().navigate("transaction-history");
             });
 
             contextMenu.add(new Hr());
