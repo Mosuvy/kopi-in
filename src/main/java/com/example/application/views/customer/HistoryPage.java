@@ -20,96 +20,141 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 @PageTitle("Riwayat Transaksi - kopi-In")
-@Route(value = "transaction-history", layout = AppLayoutNavbar.class)
+@Route(value = "customer/transaction-history", layout = AppLayoutNavbar.class)
 public class HistoryPage extends VerticalLayout {
 
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM yyyy HH:mm");
     private final TransactionsDAO transactionsDAO = new TransactionsDAO();
 
     public HistoryPage() {
+        initializeLayout();
+        checkUserAuthentication();
+
+        Users currentUser = getCurrentUser();
+        List<TransactionHistory> histories = getTransactionHistories(currentUser);
+
+        setupPageHeader();
+        if (histories.isEmpty()) {
+            showEmptyState();
+        } else {
+            showTransactionGrid(histories);
+        }
+    }
+
+    private void initializeLayout() {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+    }
 
-        // Get current user
-        Users currentUser = (Users) VaadinSession.getCurrent().getAttribute("user");
-        if (currentUser == null) {
-            UI.getCurrent().navigate("login");
-            return;
+    private void checkUserAuthentication() {
+        if (getCurrentUser() == null) {
+            UI.getCurrent().navigate("/");
         }
+    }
 
-        // Get transaction history
-        List<TransactionHistory> histories = transactionsDAO.getTransactionHistoryByUserId(Integer.parseInt(currentUser.getId()));
+    private Users getCurrentUser() {
+        return (Users) VaadinSession.getCurrent().getAttribute("user");
+    }
 
-        // Create header
+    private List<TransactionHistory> getTransactionHistories(Users user) {
+        return transactionsDAO.getTransactionHistoryByUserId(Integer.parseInt(user.getId()));
+    }
+
+    private void setupPageHeader() {
         H2 header = new H2("Riwayat Transaksi");
         header.getStyle()
                 .set("margin-bottom", "0")
                 .set("margin-top", "0");
+        add(header);
+    }
 
-        // Create grid
-        Grid<TransactionHistory> grid = new Grid<>();
+    private void showEmptyState() {
+        Div emptyState = createEmptyStateDiv();
+        add(emptyState);
+    }
+
+    private Div createEmptyStateDiv() {
+        Div emptyState = new Div();
+        emptyState.setText("Belum ada riwayat transaksi");
+        emptyState.getStyle()
+                .set("margin", "auto")
+                .set("font-style", "italic")
+                .set("color", "var(--lumo-secondary-text-color)");
+        return emptyState;
+    }
+
+    private void showTransactionGrid(List<TransactionHistory> histories) {
+        Grid<TransactionHistory> grid = createTransactionGrid();
+        configureGridColumns(grid);
         grid.setItems(histories);
+        add(grid);
+    }
+
+    private Grid<TransactionHistory> createTransactionGrid() {
+        Grid<TransactionHistory> grid = new Grid<>();
         grid.setHeightFull();
         grid.setSelectionMode(Grid.SelectionMode.NONE);
+        return grid;
+    }
 
-        // Add columns
-        grid.addColumn(new ComponentRenderer<>(history -> {
-            Div div = new Div();
-            div.setText("#" + history.getOrderId());
-            div.getStyle().set("font-weight", "bold");
-            return div;
-        })).setHeader("ID Pesanan").setAutoWidth(true);
-
-        grid.addColumn(history -> {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm");
-            return sdf.format(history.getCreatedAt());
-        }).setHeader("Tanggal").setAutoWidth(true);
-
-        grid.addComponentColumn(history -> {
-            String status = history.getStatus();
-            Div div = new Div();
-            div.setText(status);
-
-            switch (status.toLowerCase()) {
-                case "completed": div.getStyle().set("color", "var(--lumo-success-text-color)"); break;
-                case "processing": div.getStyle().set("color", "var(--lumo-primary-text-color)"); break;
-                case "cancelled": div.getStyle().set("color", "var(--lumo-error-text-color)"); break;
-            }
-
-            return div;
-        }).setHeader("Status").setAutoWidth(true);
-
-        grid.addColumn(history -> {
-            String method = history.getPaymentMethod();
-            if ("cash".equalsIgnoreCase(method)) return "Tunai";
-            if ("emoney".equalsIgnoreCase(method)) return "E-Money";
-            return method;
-        }).setHeader("Metode Pembayaran").setAutoWidth(true);
-
-        grid.addColumn(history -> String.format("Rp%,.2f", history.getTotalPrice()))
-                .setHeader("Total")
+    private void configureGridColumns(Grid<TransactionHistory> grid) {
+        grid.addColumn(new ComponentRenderer<>(this::createOrderIdColumn))
+                .setHeader("ID Pesanan")
                 .setAutoWidth(true);
-
-        grid.addColumn(new ComponentRenderer<>(history -> {
+        grid.addColumn(this::formatTransactionDate).setHeader("Tanggal").setAutoWidth(true);
+        grid.addComponentColumn(this::createStatusColumn).setHeader("Status").setAutoWidth(true);
+        grid.addColumn(this::translatePaymentMethod).setHeader("Metode Pembayaran").setAutoWidth(true);
+        grid.addColumn(this::formatTotalPrice).setHeader("Total").setAutoWidth(true);
+        grid.addColumn(new ComponentRenderer<>( history -> {
             Icon detailsIcon = VaadinIcon.EYE.create();
-            detailsIcon.setColor("var(--lumo-primary-color)");
-            detailsIcon.addClickListener(e -> {
-                UI.getCurrent().navigate("order-details/" + history.getOrderId());
-            });
+            detailsIcon.getStyle().set("cursor", "pointer");
+            detailsIcon.addClickListener(e ->
+                    UI.getCurrent().navigate("customer/order-details/" + history.getOrderId())
+            );
             return detailsIcon;
         })).setHeader("Detail").setAutoWidth(true);
+    }
 
-        // Add empty state if no history
-        if (histories.isEmpty()) {
-            Div emptyState = new Div();
-            emptyState.setText("Belum ada riwayat transaksi");
-            emptyState.getStyle()
-                    .set("margin", "auto")
-                    .set("font-style", "italic")
-                    .set("color", "var(--lumo-secondary-text-color)");
-            add(header, emptyState);
-        } else {
-            add(header, grid);
+    private Div createOrderIdColumn(TransactionHistory history) {
+        Div div = new Div();
+        div.setText("#" + history.getOrderId());
+        div.getStyle().set("font-weight", "bold");
+        return div;
+    }
+
+    private String formatTransactionDate(TransactionHistory history) {
+        return DATE_FORMAT.format(history.getCreatedAt());
+    }
+
+    private Div createStatusColumn(TransactionHistory history) {
+        String status = history.getStatus();
+        Div div = new Div();
+        div.setText(status);
+
+        switch (status.toLowerCase()) {
+            case "completed":
+                div.getStyle().set("color", "var(--lumo-success-text-color)");
+                break;
+            case "processing":
+                div.getStyle().set("color", "var(--lumo-primary-text-color)");
+                break;
+            case "cancelled":
+                div.getStyle().set("color", "var(--lumo-error-text-color)");
+                break;
         }
+
+        return div;
+    }
+
+    private String translatePaymentMethod(TransactionHistory history) {
+        String method = history.getPaymentMethod();
+        if ("cash".equalsIgnoreCase(method)) return "Tunai";
+        if ("emoney".equalsIgnoreCase(method)) return "E-Money";
+        return method;
+    }
+
+    private String formatTotalPrice(TransactionHistory history) {
+        return String.format("Rp%,.2f", history.getTotalPrice());
     }
 }

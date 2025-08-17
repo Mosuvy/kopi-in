@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @PageTitle("Profile - kopi-In")
-@Route(value = "profile", layout = AppLayoutNavbar.class)
+@Route(value = "customer/profile", layout = AppLayoutNavbar.class)
 public class ProfilPage extends VerticalLayout {
 
     private final UserDAO userDAO;
