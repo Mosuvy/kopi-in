@@ -1,13 +1,17 @@
 package com.example.application.dao;
 
+import com.example.application.dao.TransactionsDAO;
 import com.example.application.models.Orders;
 import com.example.application.models.OrderItems;
+import com.example.application.models.Transactions;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class OrderDAO extends BaseDAO {
+
+    private TransactionsDAO transactionDAO = new TransactionsDAO();
     
     public String createOrder(Orders order) {
         try {
@@ -58,6 +62,86 @@ public class OrderDAO extends BaseDAO {
             return false;
         } finally {
             closeResources();
+        }
+    }
+
+    public String createOrderWithItems(Orders order, List<OrderItems> items) throws SQLException {
+        String orderId = null;
+        try {
+            ensureConnection();
+
+            // 1. Create Order
+            orderId = createOrderInternal(order);
+            if (orderId == null) {
+                throw new SQLException("Failed to create order");
+            }
+
+            // 2. Add Order Items
+            for (OrderItems item : items) {
+                item.setOrder_id(orderId);
+                if (!addOrderItemInternal(item)) {
+                    throw new SQLException("Failed to add order items");
+                }
+            }
+
+            return orderId;
+        } catch (SQLException e) {
+            if (connection != null) {
+                connection.rollback();
+            }
+            throw e;
+        }
+    }
+
+    // Method internal untuk createOrder (modified)
+    private String createOrderInternal(Orders order) throws SQLException {
+        try {
+            String query = "INSERT INTO Orders (user_id, created_by, status, order_type, total_price, promo_id, final_price) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setInt(1, order.getUser_id());
+            preparedStatement.setInt(2, order.getCreated_by());
+            preparedStatement.setString(3, order.getStatus());
+            String type = order.getOrder_type();
+            if (type == null) {
+                throw new SQLException("order_type is null");
+            }
+            type = type.trim().toLowerCase();
+            if (!type.equals("online") && !type.equals("pos")) {
+                throw new SQLException("Invalid order_type: " + type);
+            }
+            preparedStatement.setString(4, type);
+            preparedStatement.setDouble(5, order.getTotal_price());
+            preparedStatement.setString(6, order.getPromo_id());
+            preparedStatement.setDouble(7, order.getFinal_price());
+
+            int affectedRows = preparedStatement.executeUpdate();
+            if (affectedRows > 0) {
+                resultSet = preparedStatement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    return String.valueOf(resultSet.getInt(1));
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Method internal untuk addOrderItem (modified)
+    private boolean addOrderItemInternal(OrderItems item) throws SQLException {
+        try {
+            String query = "INSERT INTO OrderItems (order_id, product_id, quantity, price, subtotal) VALUES (?, ?, ?, ?, ?)";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, Integer.parseInt(item.getOrder_id()));
+            preparedStatement.setString(2, item.getProduct_id());
+            preparedStatement.setInt(3, item.getQuantity());
+            preparedStatement.setDouble(4, item.getPrice());
+            preparedStatement.setDouble(5, item.getPrice() * item.getQuantity());
+
+            return preparedStatement.executeUpdate() > 0;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -217,6 +217,10 @@ public class AppLayoutNavbar extends AppLayout {
                 return;
             }
 
+            this.activePromo = promo;
+            this.discountAmount = subtotal[0] * promo.getDiscount_value();
+            VaadinSession.getCurrent().setAttribute("activePromo", promo);
+
             // Hitung subtotal untuk cek minimal pembelian
             subtotal[0] = cartItems.stream()
                     .mapToDouble(i -> i.getPrice() * i.getQuantity())
@@ -248,6 +252,7 @@ public class AppLayoutNavbar extends AppLayout {
             Button removePromoButton = new Button("Hapus Promo", click -> {
                 activePromo = null;
                 discountAmount = 0.0;
+                VaadinSession.getCurrent().setAttribute("activePromo", null);
                 couponField.clear();
                 updateCart();
                 Notification.show("Promo dihapus", 2000,
