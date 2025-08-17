@@ -1,10 +1,18 @@
 package com.example.application.views;
 
+import com.example.application.models.Users;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
@@ -12,9 +20,13 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+
+import java.util.Objects;
 
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
@@ -131,29 +143,28 @@ public class MainLayout extends AppLayout {
                 .set("border-radius", "8px")
                 .set("padding", "0.5rem");
 
-        // Authentication Section
         nav.addItem(createSectionTitle("Authentication", VaadinIcon.USER));
         nav.addItem(createNavItem("Login", "", VaadinIcon.SIGN_IN));
         nav.addItem(createNavItem("Register", "register", VaadinIcon.PLUS_CIRCLE));
 
-        // Customer Section
-        nav.addItem(createSectionTitle("Customer", VaadinIcon.SHOP));
-        nav.addItem(createNavItem("Home", "customer/home", VaadinIcon.HOME));
-        nav.addItem(createNavItem("About", "about", VaadinIcon.INFO_CIRCLE));
+        String role = getCurrentUser() != null ? getCurrentUser().getRole() : "";
 
-        // Cashier Section with notification badges
-        nav.addItem(createSectionTitle("Cashier", VaadinIcon.CASH));
-        nav.addItem(createNavItem("Dashboard", "kasir/dashboard", VaadinIcon.DASHBOARD));
-        nav.addItem(createNavItem("Orders", "kasir/order", VaadinIcon.CART, "3", WARNING_COLOR));
-        nav.addItem(createNavItem("Products", "kasir/products", VaadinIcon.PACKAGE));
-        nav.addItem(createNavItem("Transactions", "kasir/transactions", VaadinIcon.MONEY, "5", SUCCESS_COLOR));
-
-        // Admin Section
-        nav.addItem(createSectionTitle("Admin", VaadinIcon.COGS));
-        nav.addItem(createNavItem("Dashboard", "admin/dashboard", VaadinIcon.DASHBOARD));
-        nav.addItem(createNavItem("Products", "admin/products", VaadinIcon.PACKAGE));
-        nav.addItem(createNavItem("Users", "admin/users", VaadinIcon.USERS));
-        nav.addItem(createNavItem("Discounts", "admin/discounts", VaadinIcon.TICKET));
+        switch (role.trim().toLowerCase()) {
+            case "admin" -> {
+                nav.addItem(createSectionTitle("Admin", VaadinIcon.COGS));
+                nav.addItem(createNavItem("Dashboard", "admin/dashboard", VaadinIcon.DASHBOARD));
+                nav.addItem(createNavItem("Products", "admin/products", VaadinIcon.PACKAGE));
+                nav.addItem(createNavItem("Users", "admin/users", VaadinIcon.USERS));
+                nav.addItem(createNavItem("Discounts", "admin/discounts", VaadinIcon.TICKET));
+            }
+            case "cashier" -> {
+                nav.addItem(createSectionTitle("Cashier", VaadinIcon.CASH));
+                nav.addItem(createNavItem("Dashboard", "kasir", VaadinIcon.DASHBOARD));
+                nav.addItem(createNavItem("Orders", "kasir/order", VaadinIcon.CART, "3", WARNING_COLOR));
+                nav.addItem(createNavItem("Products", "kasir/products", VaadinIcon.PACKAGE));
+                nav.addItem(createNavItem("Transactions", "kasir/transactions", VaadinIcon.MONEY, "5", SUCCESS_COLOR));
+            }
+        }
 
         return nav;
     }
@@ -244,6 +255,18 @@ public class MainLayout extends AppLayout {
         versionInfo.setAlignItems(FlexComponent.Alignment.CENTER);
         versionInfo.setSpacing(true);
 
+        Button logoutButton = new Button("Logout", new Icon(VaadinIcon.SIGN_OUT), e -> {
+            Dialog dialog = createLogoutDialog();
+            dialog.open();
+        });
+        logoutButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
+        logoutButton.getStyle()
+                .set("width", "100%")
+                .set("justify-content", "flex-start")
+                .set("margin-bottom", "24px")
+                .set("font-weight", "600")
+                .set("color", "#b71c1c");
+
         Icon infoIcon = new Icon(VaadinIcon.INFO_CIRCLE);
         infoIcon.getStyle()
                 .set("color", COFFEE_LIGHT)
@@ -265,12 +288,52 @@ public class MainLayout extends AppLayout {
                 .set("margin-top", "4px")
                 .set("display", "block");
 
-        VerticalLayout footerContent = new VerticalLayout(versionInfo, copyright);
+        VerticalLayout footerContent = new VerticalLayout(logoutButton, versionInfo, copyright);
         footerContent.setSpacing(false);
         footerContent.setPadding(false);
         layout.add(footerContent);
 
         return layout;
+    }
+
+    private Dialog createLogoutDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setCloseOnOutsideClick(true);
+        dialog.setCloseOnEsc(true);
+        dialog.setHeaderTitle("Konfirmasi Logout");
+        dialog.add(new Span("Apakah Anda yakin ingin keluar dari akun ini?"));
+
+        Button cancelButton = new Button("Batal", e -> dialog.close());
+        Button logoutButton = createLogoutButton(dialog);
+
+        HorizontalLayout buttons = new HorizontalLayout(cancelButton, logoutButton);
+        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        buttons.setWidthFull();
+        dialog.getFooter().add(buttons);
+
+        return dialog;
+    }
+
+    private Button createLogoutButton(Dialog dialog) {
+        Button button = new Button("Keluar", e -> {
+            VaadinSession.getCurrent().setAttribute("user", null);
+            dialog.close();
+            UI.getCurrent().getPage().setLocation("/");
+            showSuccessNotification("Anda telah logout");
+        });
+        button.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        button.getStyle().set("font-weight", "bold");
+        return button;
+    }
+
+    private void showErrorNotification(String message) {
+        Notification.show(message, 3000, Notification.Position.MIDDLE)
+                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
+    private void showSuccessNotification(String message) {
+        Notification.show(message, 3000, Notification.Position.MIDDLE)
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
     @Override
@@ -281,5 +344,9 @@ public class MainLayout extends AppLayout {
 
     private String getCurrentPageTitle() {
         return MenuConfiguration.getPageHeader(getContent()).orElse("");
+    }
+
+    public static Users getCurrentUser() {
+        return (Users) VaadinSession.getCurrent().getAttribute("user");
     }
 }
