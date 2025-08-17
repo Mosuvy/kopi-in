@@ -5,6 +5,7 @@ import java.sql.Date;
 public class Customer {
     private String id;
     private String user_id;
+    private String avatar;
     private String full_name;
     private String address;
     private String phone_number;
@@ -24,6 +25,14 @@ public class Customer {
 
     public void setUser_id(String user_id) {
         this.user_id = user_id;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public String getFull_name() {

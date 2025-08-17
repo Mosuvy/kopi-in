@@ -8,8 +8,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
+import org.springframework.stereotype.Repository;
 import static com.example.application.Koneksi.koneksi.getConnection;
 
+@Repository
 public class UserDAO {
     Connection connection;
     PreparedStatement statement;
@@ -255,7 +257,7 @@ public class UserDAO {
     public ArrayList<Customer> getListCustomer() {
         listCustomer = new ArrayList<>();
         try {
-            statement = connection.prepareStatement("SELECT * FROM Customer",
+            statement = connection.prepareStatement("SELECT * FROM Customer_details",
                     ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -276,7 +278,7 @@ public class UserDAO {
 
     public Customer getCustomer(String id) {
         Customer customer = null;
-        String sql = "SELECT * FROM Customer WHERE id = ?";
+        String sql = "SELECT * FROM Customer_details WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -285,6 +287,7 @@ public class UserDAO {
                     customer.setId(resultSet.getString("id"));
                     customer.setUser_id(resultSet.getString("user_id"));
                     customer.setFull_name(resultSet.getString("full_name"));
+                    customer.setAvatar(resultSet.getString("avatar"));
                     customer.setAddress(resultSet.getString("address"));
                     customer.setPhone_number(resultSet.getString("phone_number"));
                     customer.setBirth_date(resultSet.getDate("birth_date"));
@@ -297,11 +300,33 @@ public class UserDAO {
         return customer;
     }
 
-    public boolean createCustomer(Customer customer) {
-        String sql = "INSERT INTO Customer (id, user_id, full_name, address, phone_number, birth_date) VALUES (?, ?, ?, ?, ?, ?)";
+    public Customer getCustomerByUserId(String userId) {
+        String sql = "SELECT * FROM Customer_details WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, customer.getId());
-            statement.setString(2, customer.getUser_id());
+            statement.setString(1, userId);
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                Customer customer = new Customer();
+                customer.setId(rs.getString("id"));
+                customer.setUser_id(rs.getString("user_id"));
+                customer.setAvatar(rs.getString("avatar"));
+                customer.setFull_name(rs.getString("full_name"));
+                customer.setAddress(rs.getString("address"));
+                customer.setPhone_number(rs.getString("phone_number"));
+                customer.setBirth_date(rs.getDate("birth_date"));
+                return customer;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean createCustomer(Customer customer) {
+        String sql = "INSERT INTO Customer_details (user_id, avatar, full_name, address, phone_number, birth_date) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, customer.getUser_id());
+            statement.setString(2, customer.getAvatar());
             statement.setString(3, customer.getFull_name());
             statement.setString(4, customer.getAddress());
             statement.setString(5, customer.getPhone_number());
@@ -316,14 +341,15 @@ public class UserDAO {
     }
 
     public boolean updateCustomer(Customer customer) {
-        String sql = "UPDATE Customer SET user_id = ?, full_name = ?, address = ?, phone_number = ?, birth_date = ? WHERE id = ?";
+        String sql = "UPDATE Customer_details SET user_id = ?, full_name = ?, avatar = ?, address = ?, phone_number = ?, birth_date = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, customer.getUser_id());
             statement.setString(2, customer.getFull_name());
-            statement.setString(3, customer.getAddress());
-            statement.setString(4, customer.getPhone_number());
-            statement.setDate(5, new java.sql.Date(customer.getBirth_date().getTime()));
-            statement.setString(6, customer.getId());
+            statement.setString(3, customer.getAvatar());
+            statement.setString(4, customer.getAddress());
+            statement.setString(5, customer.getPhone_number());
+            statement.setDate(6, new java.sql.Date(customer.getBirth_date().getTime()));
+            statement.setString(7, customer.getId());
 
             int rowsAffected = statement.executeUpdate();
             return rowsAffected > 0;
@@ -334,7 +360,7 @@ public class UserDAO {
     }
 
     public boolean deleteCustomer(String id) {
-        String sql = "DELETE FROM Customer WHERE id = ?";
+        String sql = "DELETE FROM Customer_details WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, id);
             int rowsAffected = statement.executeUpdate();
