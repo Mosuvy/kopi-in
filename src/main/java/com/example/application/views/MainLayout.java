@@ -157,7 +157,7 @@ public class MainLayout extends AppLayout {
                 nav.addItem(createNavItem("Users", "admin/users", VaadinIcon.USERS));
                 nav.addItem(createNavItem("Discounts", "admin/discounts", VaadinIcon.TICKET));
             }
-            case "cashier" -> {
+            case "kasir" -> {
                 nav.addItem(createSectionTitle("Cashier", VaadinIcon.CASH));
                 nav.addItem(createNavItem("Dashboard", "kasir", VaadinIcon.DASHBOARD));
                 nav.addItem(createNavItem("Orders", "kasir/order", VaadinIcon.CART, "3", WARNING_COLOR));
