@@ -10,6 +10,70 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderDAO extends BaseDAO {
+    // Statistik: jumlah order hari ini
+    public int getTodayOrderCount() {
+        try {
+            ensureConnection();
+            String query = "SELECT COUNT(*) FROM Orders WHERE DATE(created_at) = CURDATE()";
+            preparedStatement = connection.prepareStatement(query);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    // Statistik: total penjualan (final_price semua order)
+    public double getTotalSales() {
+        try {
+            ensureConnection();
+            String query = "SELECT SUM(final_price) FROM Orders";
+            preparedStatement = connection.prepareStatement(query);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return 0.0;
+    }
+
+    // Statistik: menu populer hari ini (top N produk berdasarkan jumlah order)
+    public List<String[]> getPopularMenus(int limit) {
+        List<String[]> popularMenus = new ArrayList<>();
+        try {
+            ensureConnection();
+            String query = "SELECT oi.product_id, p.name, SUM(oi.quantity) as total_ordered " +
+                    "FROM OrderItems oi JOIN Products p ON oi.product_id = p.id " +
+                    "JOIN Orders o ON oi.order_id = o.id " +
+                    "WHERE DATE(o.created_at) = CURDATE() " +
+                    "GROUP BY oi.product_id, p.name " +
+                    "ORDER BY total_ordered DESC LIMIT ?";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, limit);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String[] row = new String[3];
+                row[0] = resultSet.getString("product_id");
+                row[1] = resultSet.getString("name");
+                row[2] = String.valueOf(resultSet.getInt("total_ordered"));
+                popularMenus.add(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return popularMenus;
+    }
 
     private TransactionsDAO transactionDAO = new TransactionsDAO();
     

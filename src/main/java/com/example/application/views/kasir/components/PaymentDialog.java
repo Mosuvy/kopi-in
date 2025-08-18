@@ -41,10 +41,14 @@ public class PaymentDialog extends Dialog {
         // Order summary
         Paragraph summary = new Paragraph(String.format("Total Amount: Rp %.2f", totalAmount));
         if (appliedPromo != null) {
+            int discountPercent = 0;
+            if (appliedPromo.getDiscount_value() != null) {
+                discountPercent = (int) Math.round(appliedPromo.getDiscount_value() * 100);
+            }
             summary.setText(summary.getText() + 
                 String.format("\nPromo Applied: %s (%d%% discount)", 
                     appliedPromo.getName(), 
-                    appliedPromo.getDiscount_percentage()));
+                    discountPercent));
         }
 
         // Payment method selection

@@ -26,8 +26,18 @@ public class PromoDAO {
                 promo.setName(rs.getString("name"));
                 promo.setCode(rs.getString("code"));
                 promo.setDescription(rs.getString("description"));
-                promo.setDiscount_value(rs.getDouble("discount_value"));
-                promo.setMin_purchase(rs.getDouble("min_purchase"));
+                double discountValue = rs.getDouble("discount_value");
+                if (rs.wasNull()) {
+                    promo.setDiscount_value(null);
+                } else {
+                    promo.setDiscount_value(discountValue);
+                }
+                double minPurchase = rs.getDouble("min_purchase");
+                if (rs.wasNull()) {
+                    promo.setMin_purchase(null);
+                } else {
+                    promo.setMin_purchase(minPurchase);
+                }
                 promo.setStart_date(rs.getDate("start_date"));
                 promo.setEnd_date(rs.getDate("end_date"));
                 promoList.add(promo);
@@ -74,8 +84,18 @@ public class PromoDAO {
                     promo.setName(rs.getString("name"));
                     promo.setCode(rs.getString("code"));
                     promo.setDescription(rs.getString("description"));
-                    promo.setDiscount_value(rs.getDouble("discount_value"));
-                    promo.setMin_purchase(rs.getDouble("min_purchase"));
+                    double discountValue = rs.getDouble("discount_value");
+                    if (rs.wasNull()) {
+                        promo.setDiscount_value(null);
+                    } else {
+                        promo.setDiscount_value(discountValue);
+                    }
+                    double minPurchase = rs.getDouble("min_purchase");
+                    if (rs.wasNull()) {
+                        promo.setMin_purchase(null);
+                    } else {
+                        promo.setMin_purchase(minPurchase);
+                    }
                     promo.setStart_date(rs.getDate("start_date"));
                     promo.setEnd_date(rs.getDate("end_date"));
                 }
@@ -159,8 +179,18 @@ public class PromoDAO {
                 promo.setName(rs.getString("name"));
                 promo.setCode(rs.getString("code"));
                 promo.setDescription(rs.getString("description"));
-                promo.setDiscount_value(rs.getDouble("discount_value"));
-                promo.setMin_purchase(rs.getDouble("min_purchase"));
+                double discountValue = rs.getDouble("discount_value");
+                if (rs.wasNull()) {
+                    promo.setDiscount_value(null);
+                } else {
+                    promo.setDiscount_value(discountValue);
+                }
+                double minPurchase = rs.getDouble("min_purchase");
+                if (rs.wasNull()) {
+                    promo.setMin_purchase(null);
+                } else {
+                    promo.setMin_purchase(minPurchase);
+                }
                 promo.setStart_date(rs.getDate("start_date"));
                 promo.setEnd_date(rs.getDate("end_date"));
             }
@@ -171,5 +201,19 @@ public class PromoDAO {
             e.printStackTrace();
             return null;
         }
+    }
+
+    // Statistik: jumlah promo aktif
+    public int getActivePromoCount() {
+        String query = "SELECT COUNT(*) FROM promo WHERE (start_date <= CURRENT_DATE OR start_date IS NULL) AND (end_date >= CURRENT_DATE OR end_date IS NULL)";
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

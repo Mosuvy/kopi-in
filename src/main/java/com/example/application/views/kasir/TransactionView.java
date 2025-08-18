@@ -36,11 +36,11 @@ import java.util.List;
 @PageTitle("Transactions | Kopi.in")
 @Route(value = "kasir/transactions", layout = MainLayout.class)
 public class TransactionView extends VerticalLayout {
-    private Grid<Orders> grid;
-    private OrderDAO orderDAO;
-    private ProductDAO productDAO;
-    private PromoDAO promoDAO;
-    private TextField filterField;
+        private Grid<Orders> grid;
+        private OrderDAO orderDAO;
+        private ProductDAO productDAO;
+        private PromoDAO promoDAO;
+        private TextField filterField;
 
     public TransactionView() {
         orderDAO = new OrderDAO();
@@ -127,81 +127,140 @@ public class TransactionView extends VerticalLayout {
 
         searchCard.add(filterField);
 
-        // Transactions Grid Card
-        VerticalLayout gridCard = new VerticalLayout();
-        gridCard.getStyle()
-                .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
-                .set("border-radius", "20px")
-                .set("padding", "25px")
-                .set("box-shadow", "0 8px 25px rgba(0,0,0,0.1)")
-                .set("margin", "0 15px");
+                // Transactions Grid Card
+                VerticalLayout gridCard = new VerticalLayout();
+                gridCard.getStyle()
+                                .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
+                                .set("border-radius", "20px")
+                                .set("padding", "25px")
+                                .set("box-shadow", "0 8px 25px rgba(0,0,0,0.1)")
+                                .set("margin", "0 15px");
 
-        // Enhanced grid styling
-        grid = new Grid<>();
-        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        grid.getStyle()
-                .set("border-radius", "15px")
-                .set("overflow", "hidden")
-                .set("box-shadow", "0 4px 12px rgba(0,0,0,0.05)");
+                // Enhanced grid styling
+                grid = new Grid<>();
+                grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+                grid.getStyle()
+                                .set("border-radius", "15px")
+                                .set("box-shadow", "0 4px 12px rgba(0,0,0,0.05)");
+                // Hapus overflow:hidden agar scroll bisa
 
-        grid.addColumn(order -> order.getId().substring(0, 8))
-                .setHeader("Order ID")
-                .setFlexGrow(1);
-        grid.addColumn(order -> order.getCreated_at().toLocalDateTime()
-                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")))
-                .setHeader("Date")
-                .setFlexGrow(1);
-        grid.addColumn(Orders::getOrder_type)
-                .setHeader("Type")
-                .setFlexGrow(1);
-        grid.addColumn(order -> String.format("Rp %.2f", order.getTotal_price()))
-                .setHeader("Total")
-                .setFlexGrow(1);
+                grid.addColumn(order -> order.getId())
+                                .setHeader("Order ID")
+                                .setFlexGrow(1);
+                grid.addColumn(order -> order.getCreated_at().toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")))
+                                .setHeader("Date")
+                                .setFlexGrow(1);
+                grid.addColumn(Orders::getOrder_type)
+                                .setHeader("Type")
+                                .setFlexGrow(1);
+                grid.addColumn(order -> String.format("Rp %.2f", order.getTotal_price()))
+                                .setHeader("Total")
+                                .setFlexGrow(1);
+                // Promo column
+                grid.addColumn(order -> {
+                        if (order.getPromo_id() != null) {
+                                Promo promo = promoDAO.getPromoById(order.getPromo_id());
+                                return promo != null ? promo.getName() : "-";
+                        } else {
+                                return "-";
+                        }
+                }).setHeader("Promo").setFlexGrow(1);
+                // Final Price column
+                grid.addColumn(order -> String.format("Rp %.2f", order.getFinal_price() != null ? order.getFinal_price() : order.getTotal_price()))
+                                .setHeader("Final Price")
+                                .setFlexGrow(1);
+                // Status column with DB enums
+                grid.addComponentColumn(order -> {
+                        String status = order.getStatus();
+                        Button statusBadge = new Button(status.substring(0, 1).toUpperCase() + status.substring(1));
+                        String color;
+                        switch (status) {
+                                case "accepted":
+                                        color = "#2E7D32"; // Green
+                                        break;
+                                case "rejected":
+                                        color = "#D32F2F"; // Red
+                                        break;
+                                case "processing":
+                                default:
+                                        color = "#1976D2"; // Blue
+                        }
+                        statusBadge.getStyle()
+                                        .set("background", color)
+                                        .set("color", "white")
+                                        .set("border-radius", "20px")
+                                        .set("padding", "5px 15px")
+                                        .set("font-size", "12px")
+                                        .set("font-weight", "600")
+                                        .set("box-shadow", "0 2px 8px " + color + "40");
+                        return statusBadge;
+                }).setHeader("Status").setFlexGrow(1);
+                // Actions column with enhanced styling
+                grid.addComponentColumn(order -> {
+                        HorizontalLayout actions = new HorizontalLayout();
+                        actions.setSpacing(true);
+                        // Redesigned: modern, spacing, color
+                        Button viewButton = createActionButton("View", VaadinIcon.EYE, "#8B4513", e -> showOrderDetails(order));
+                        Button printButton = createActionButton("Print", VaadinIcon.PRINT, "#A0522D", e -> printReceipt(order));
+                        actions.add(viewButton, printButton);
+                        // Tambahkan tombol Accept jika status processing
+                        if ("processing".equals(order.getStatus())) {
+                                Button acceptButton = new Button("Accept", VaadinIcon.CHECK_CIRCLE.create());
+                                acceptButton.getStyle()
+                                        .set("background", "linear-gradient(135deg, #388E3C, #4CAF50)")
+                                        .set("color", "white")
+                                        .set("border-radius", "8px")
+                                        .set("font-weight", "600")
+                                        .set("box-shadow", "0 4px 12px #388E3C40")
+                                        .set("margin-left", "8px")
+                                        .set("transition", "all 0.3s ease");
+                                acceptButton.getElement().addEventListener("mouseenter", e ->
+                                        acceptButton.getStyle()
+                                                .set("transform", "translateY(-2px)")
+                                                .set("box-shadow", "0 6px 15px #388E3C60")
+                                );
+                                acceptButton.getElement().addEventListener("mouseleave", e ->
+                                        acceptButton.getStyle()
+                                                .set("transform", "translateY(0)")
+                                                .set("box-shadow", "0 4px 12px #388E3C40")
+                                );
+                                acceptButton.addClickListener(e -> {
+                                        boolean success = orderDAO.updateOrderStatus(order.getId(), "accepted");
+                                        if (success) {
+                                                Notification.show("Order accepted!", 3000, Notification.Position.TOP_CENTER)
+                                                        .addThemeName("success");
+                                                updateList();
+                                        } else {
+                                                Notification.show("Failed to accept order", 3000, Notification.Position.TOP_CENTER)
+                                                        .addThemeName("error");
+                                        }
+                                });
+                                actions.add(acceptButton);
+                        }
+                        return actions;
+                }).setHeader("Actions").setFlexGrow(1);
+                // Gabungkan semua status dari DB
+                List<Orders> allOrders = new java.util.ArrayList<>();
+                allOrders.addAll(orderDAO.getOrdersByStatus("processing"));
+                allOrders.addAll(orderDAO.getOrdersByStatus("accepted"));
+                allOrders.addAll(orderDAO.getOrdersByStatus("rejected"));
+                grid.setItems(allOrders);
 
-        // Status column with enhanced styling
-        grid.addComponentColumn(order -> {
-            Button statusBadge = new Button(order.getStatus());
-            String color;
-            switch (order.getStatus().toUpperCase()) {
-                case "COMPLETED":
-                    color = "#2E7D32"; // Green
-                    break;
-                case "PENDING":
-                    color = "#ED6C02"; // Orange
-                    break;
-                default:
-                    color = "#1976D2"; // Blue
-            }
-            statusBadge.getStyle()
-                    .set("background", color)
-                    .set("color", "white")
-                    .set("border-radius", "20px")
-                    .set("padding", "5px 15px")
-                    .set("font-size", "12px")
-                    .set("font-weight", "600")
-                    .set("box-shadow", "0 2px 8px " + color + "40");
-            return statusBadge;
-        }).setHeader("Status").setFlexGrow(1);
-        
-        // Actions column with enhanced styling
-        grid.addComponentColumn(order -> {
-            HorizontalLayout actions = new HorizontalLayout();
-            actions.setSpacing(true);
-            
-            Button viewButton = createActionButton("View", VaadinIcon.EYE, "#8B4513", e -> showOrderDetails(order));
-            Button printButton = createActionButton("Print", VaadinIcon.PRINT, "#A0522D", e -> printReceipt(order));
-            
-            actions.add(viewButton, printButton);
-            return actions;
-        }).setHeader("Actions").setFlexGrow(1);
-
-        grid.setItems(orderDAO.getOrdersByStatus("COMPLETED"));
-
-        gridCard.add(grid);
-        mainContainer.add(searchCard, gridCard);
-
-        updateList();
-        return mainContainer;
+                // Tambahkan wrapper scrollable dengan dukungan touch/slide
+                Div scrollWrapper = new Div(grid);
+                scrollWrapper.getStyle()
+                        .set("overflow-x", "auto")
+                        .set("width", "100%")
+                        .set("touch-action", "pan-x")
+                        .set("-webkit-overflow-scrolling", "touch")
+                        .set("cursor", "grab");
+                grid.getStyle()
+                        .set("min-width", "900px"); // pastikan grid lebih lebar dari wrapper jika kolom banyak
+                gridCard.add(scrollWrapper);
+                mainContainer.add(searchCard, gridCard);
+                updateList();
+                return mainContainer;
     }
 
     private Button createActionButton(String text, VaadinIcon icon, String color, ComponentEventListener<ClickEvent<Button>> listener) {
@@ -259,12 +318,30 @@ public class TransactionView extends VerticalLayout {
 
         // Generate receipt-like view with enhanced styling
         VerticalLayout receiptLayout = ReceiptGenerator.generateReceipt(order, items, promo);
+        receiptLayout.setId("receipt-layout"); // Tambahkan ID agar mudah di-capture
         receiptLayout.getStyle()
                 .set("background", "white")
                 .set("border-radius", "15px")
                 .set("box-shadow", "0 4px 15px rgba(0,0,0,0.1)")
                 .set("padding", "20px");
-        
+
+        Button downloadImageButton = new Button("Download Gambar Struk", VaadinIcon.DOWNLOAD.create());
+        downloadImageButton.getStyle()
+                .set("background", "linear-gradient(135deg, #388E3C, #4CAF50)")
+                .set("color", "white")
+                .set("border-radius", "8px")
+                .set("font-weight", "600")
+                .set("cursor", "pointer")
+                .set("box-shadow", "0 4px 12px #388E3C40")
+                .set("transition", "all 0.3s ease");
+        downloadImageButton.addClickListener(e -> {
+            // Jalankan JS untuk html2canvas
+            receiptLayout.getElement().executeJs(
+                "if (window.html2canvas) { html2canvas(document.getElementById('receipt-layout')).then(function(canvas) { " +
+                "var link = document.createElement('a'); link.download = 'struk.png'; link.href = canvas.toDataURL(); link.click(); }); } else { alert('html2canvas belum dimuat!'); }"
+            );
+        });
+
         Button closeButton = new Button("Close", VaadinIcon.CLOSE.create());
         closeButton.getStyle()
                 .set("margin-top", "16px")
@@ -290,7 +367,7 @@ public class TransactionView extends VerticalLayout {
 
         closeButton.addClickListener(e -> dialog.close());
 
-        content.add(title, receiptLayout, closeButton);
+        content.add(title, receiptLayout, downloadImageButton, closeButton);
         dialog.add(content);
         dialog.open();
     }
@@ -307,15 +384,16 @@ public class TransactionView extends VerticalLayout {
     }
 
     private void updateList() {
-        List<Orders> orders = orderDAO.getOrdersByStatus("COMPLETED");
-        if (!filterField.isEmpty()) {
-            String filter = filterField.getValue().toLowerCase();
-            orders.removeIf(order -> 
-                !order.getId().toLowerCase().contains(filter) &&
-                !order.getOrder_type().toLowerCase().contains(filter) &&
-                !order.getStatus().toLowerCase().contains(filter)
-            );
-        }
-        grid.setItems(orders);
+                List<Orders> orders = new java.util.ArrayList<>();
+                orders.addAll(orderDAO.getOrdersByStatus("processing"));
+                orders.addAll(orderDAO.getOrdersByStatus("accepted"));
+                orders.addAll(orderDAO.getOrdersByStatus("rejected"));
+                if (!filterField.isEmpty()) {
+                        String filter = filterField.getValue().toLowerCase();
+                        orders.removeIf(order ->
+                                !(order.getId() + " " + order.getOrder_type() + " " + order.getStatus()).toLowerCase().contains(filter)
+                        );
+                }
+                grid.setItems(orders);
     }
 } 

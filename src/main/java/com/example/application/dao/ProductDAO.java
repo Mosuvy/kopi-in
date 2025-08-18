@@ -9,6 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductDAO {
+    // Statistik: jumlah produk aktif
+    public int getActiveProductCount() {
+        String sql = "SELECT COUNT(*) FROM Products WHERE is_active = 1";
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error counting active products", e);
+        }
+        return 0;
+    }
     private Connection connection;
 
     public ProductDAO() {

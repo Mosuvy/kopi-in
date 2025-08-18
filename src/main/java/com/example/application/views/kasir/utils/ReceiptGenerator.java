@@ -98,10 +98,13 @@ public class ReceiptGenerator {
         totalsContainer.add(subtotal);
 
         if (appliedPromo != null) {
+            Double discountValue = appliedPromo.getDiscount_value();
+            int percent = (discountValue != null) ? (int) Math.round(discountValue * 100) : 0;
+            double discountAmount = order.getTotal_price() - (order.getFinal_price() != null ? order.getFinal_price() : order.getTotal_price());
             Paragraph discount = new Paragraph(String.format(
                     "Discount (%d%%):%26.2f",
-                    appliedPromo.getDiscount_percentage(),
-                    order.getTotal_price() - order.getFinal_price()
+                    percent,
+                    discountAmount
             ));
             discount.getStyle()
                     .set("white-space", "pre")

@@ -24,21 +24,24 @@ import java.time.format.DateTimeFormatter;
 @PageTitle("Kasir Dashboard - Kopi.in")
 @Route(value = "kasir", layout = MainLayout.class)
 public class Dashboard extends VerticalLayout {
+        private final com.example.application.dao.OrderDAO orderDAO = new com.example.application.dao.OrderDAO();
+        private final com.example.application.dao.ProductDAO productDAO = new com.example.application.dao.ProductDAO();
+        private final com.example.application.dao.PromoDAO promoDAO = new com.example.application.dao.PromoDAO();
 
-    public Dashboard() {
-        addClassName("dashboard-view");
-        setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
-        setPadding(false);
-        setSpacing(false);
+        public Dashboard() {
+                addClassName("dashboard-view");
+                setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
+                setPadding(false);
+                setSpacing(false);
 
-        // Background gradient untuk seluruh halaman
-        getElement().getStyle()
-                .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
-                .set("min-height", "100vh")
-                .set("padding", "0");
+                // Background gradient untuk seluruh halaman
+                getElement().getStyle()
+                                .set("background", "linear-gradient(135deg, #f8f6f0 0%, #f0ede3 100%)")
+                                .set("min-height", "100vh")
+                                .set("padding", "0");
 
-        add(createHeader(), createStatsCards(), createChartsSection());
-    }
+                add(createHeader(), createStatsCards(), createChartsSection());
+        }
 
     private Component createHeader() {
         HorizontalLayout header = new HorizontalLayout();
@@ -178,11 +181,15 @@ public class Dashboard extends VerticalLayout {
                 .set("margin-bottom", "25px")
                 .set("padding", "0 15px");
 
+        int todayOrder = orderDAO.getTodayOrderCount();
+        double totalSales = orderDAO.getTotalSales();
+        int activeMenu = productDAO.getActiveProductCount();    
+        int activePromo = promoDAO.getActivePromoCount();
         statsLayout.add(
-                createEnhancedStatCard("Pesanan Hari Ini", "24", VaadinIcon.CLIPBOARD_CHECK, "#8B4513", "📋"),
-                createEnhancedStatCard("Total Penjualan", "Rp 2.450.000", VaadinIcon.DOLLAR, "#A0522D", "💰"),
-                createEnhancedStatCard("Menu Tersedia", "18", VaadinIcon.COFFEE, "#CD853F", "☕"),
-                createEnhancedStatCard("Promo Aktif", "3", VaadinIcon.TICKET, "#D2691E", "🏷️")
+                createEnhancedStatCard("Pesanan Hari Ini", String.valueOf(todayOrder), VaadinIcon.CLIPBOARD_CHECK, "#8B4513", "📋"),
+                createEnhancedStatCard("Total Penjualan", String.format("Rp %,.0f", totalSales), VaadinIcon.DOLLAR, "#A0522D", "💰"),
+                createEnhancedStatCard("Menu Tersedia", String.valueOf(activeMenu), VaadinIcon.COFFEE, "#CD853F", "☕"),
+                createEnhancedStatCard("Promo Aktif", String.valueOf(activePromo), VaadinIcon.TICKET, "#D2691E", "🏷️")
         );
 
         return statsLayout;
@@ -400,12 +407,17 @@ public class Dashboard extends VerticalLayout {
         menuList.setPadding(false);
         menuList.setSpacing(false);
 
-        String[] menus = {"Kopi Hitam", "Cappuccino", "Latte", "Americano", "Mocha"};
-        int[] orders = {45, 38, 32, 28, 25};
         String[] colors = {"#8B4513", "#A0522D", "#CD853F", "#D2691E", "#DEB887"};
         String[] icons = {"☕", "🥛", "🍯", "💧", "🍫"};
 
-        for (int i = 0; i < menus.length; i++) {
+        java.util.List<String[]> popularMenus = orderDAO.getPopularMenus(5);
+        for (int i = 0; i < popularMenus.size(); i++) {
+            String[] row = popularMenus.get(i);
+            String menuName = row[1];
+            String orderCount = row[2];
+            String color = colors[i % colors.length];
+            String icon = icons[i % icons.length];
+
             Div menuItem = new Div();
             menuItem.getStyle()
                     .set("background", "linear-gradient(135deg, white 0%, #fefefe 100%)")
@@ -413,45 +425,42 @@ public class Dashboard extends VerticalLayout {
                     .set("padding", "15px")
                     .set("margin-bottom", "10px")
                     .set("box-shadow", "0 4px 12px rgba(0,0,0,0.08)")
-                    .set("border-left", "4px solid " + colors[i])
+                    .set("border-left", "4px solid " + color)
                     .set("transition", "all 0.3s ease");
 
             HorizontalLayout content = new HorizontalLayout();
             content.setWidthFull();
             content.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            // Icon container
             Div iconContainer = new Div();
             iconContainer.getStyle()
-                    .set("background", "linear-gradient(135deg, " + colors[i] + "20, " + colors[i] + "10)")
+                    .set("background", "linear-gradient(135deg, " + color + "20, " + color + "10)")
                     .set("padding", "8px")
                     .set("border-radius", "10px")
                     .set("margin-right", "12px");
 
-            Span icon = new Span(icons[i]);
-            icon.getStyle().set("font-size", "20px");
-            iconContainer.add(icon);
+            Span iconSpan = new Span(icon);
+            iconSpan.getStyle().set("font-size", "20px");
+            iconContainer.add(iconSpan);
 
-            // Menu info
             VerticalLayout info = new VerticalLayout();
             info.setPadding(false);
             info.setSpacing(false);
 
-            Span name = new Span(menus[i]);
+            Span name = new Span(menuName);
             name.getStyle()
                     .set("font-weight", "600")
-                    .set("color", colors[i]);
+                    .set("color", color);
 
-            Span orderCount = new Span(orders[i] + " orders");
-            orderCount.getStyle()
+            Span orderCountSpan = new Span(orderCount + " orders");
+            orderCountSpan.getStyle()
                     .set("font-size", "12px")
                     .set("color", "#666");
 
-            info.add(name, orderCount);
+            info.add(name, orderCountSpan);
             content.add(iconContainer, info);
             menuItem.add(content);
 
-            // Hover effect
             menuItem.getElement().addEventListener("mouseenter", e -> {
                 menuItem.getStyle()
                         .set("transform", "translateX(5px)")
@@ -466,7 +475,6 @@ public class Dashboard extends VerticalLayout {
 
             menuList.add(menuItem);
         }
-
         return menuList;
     }
 }

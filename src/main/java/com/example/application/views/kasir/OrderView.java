@@ -7,6 +7,7 @@ import com.example.application.models.Orders;
 import com.example.application.models.OrderItems;
 import com.example.application.models.Products;
 import com.example.application.models.Promo;
+import com.example.application.models.Users;
 import com.example.application.views.MainLayout;
 import com.example.application.views.kasir.components.PaymentDialog;
 import com.vaadin.flow.component.Component;
@@ -323,16 +324,22 @@ public class OrderView extends VerticalLayout {
     }
 
     private void calculateTotal() {
+        // DEBUG: Tampilkan nilai discount_value dari promo yang dipilih
+        Promo selectedPromoDebug = promoComboBox.getValue();
+        if (selectedPromoDebug != null) {
+            Notification.show("[DEBUG] Promo: " + selectedPromoDebug.getName() + ", discount_value: " + selectedPromoDebug.getDiscount_value(), 5000, Notification.Position.TOP_CENTER);
+        }
         totalAmount = currentOrderItems.stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
                 .sum();
 
         Promo selectedPromo = promoComboBox.getValue();
+        double discount = 0.0;
         if (selectedPromo != null && selectedPromo.getDiscount_value() != null) {
-            double discount = selectedPromo.getDiscount_value();
-            if (selectedPromo.getMin_purchase() == null || totalAmount >= selectedPromo.getMin_purchase()) {
-                totalAmount = totalAmount * (1 - discount);
-            }
+            discount = selectedPromo.getDiscount_value();
+        }
+        if (selectedPromo != null && (selectedPromo.getMin_purchase() == null || totalAmount >= selectedPromo.getMin_purchase())) {
+            totalAmount = totalAmount * (1 - discount);
         }
 
         totalDisplay.setText(String.format("Total: Rp %.2f", totalAmount));
@@ -355,12 +362,28 @@ public class OrderView extends VerticalLayout {
 
     private void processOrder(String paymentMethod) {
         Orders order = new Orders();
-        order.setStatus("PENDING");
-        order.setOrder_type("DINE_IN"); // You might want to make this configurable
+    order.setStatus("processing");
+    order.setOrder_type("pos");
         order.setTotal_price(totalAmount);
         order.setFinal_price(totalAmount);
         if (promoComboBox.getValue() != null) {
             order.setPromo_id(promoComboBox.getValue().getId());
+        }
+
+        // Set user_id dan created_by dari session
+        Users currentUser = com.example.application.views.MainLayout.getCurrentUser();
+        if (currentUser != null && currentUser.getId() != null) {
+            try {
+                int userId = Integer.valueOf(currentUser.getId());
+                order.setUser_id(userId);
+                order.setCreated_by(userId);
+            } catch (NumberFormatException e) {
+                Notification.show("User ID tidak valid", 3000, Notification.Position.MIDDLE);
+                return;
+            }
+        } else {
+            Notification.show("User belum login!", 3000, Notification.Position.MIDDLE);
+            return;
         }
 
         String orderId = orderDAO.createOrder(order);
@@ -390,7 +413,8 @@ public class OrderView extends VerticalLayout {
         promoComboBox.setItems(promoDAO.getListPromo());
         promoComboBox.setItemLabelGenerator(promo -> {
             if (promo == null) return "";
-            String discountText = String.format("%.0f%%", promo.getDiscount_value() * 100);
+            Double discountValue = promo.getDiscount_value();
+            String discountText = discountValue != null ? String.format("%.0f%%", discountValue * 100) : "0%";
             String minPurchaseText = promo.getMin_purchase() != null ? 
                 String.format(" (Min. Rp %.0f)", promo.getMin_purchase()) : "";
             return promo.getName() + " - " + discountText + minPurchaseText;
