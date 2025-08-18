@@ -350,7 +350,7 @@ public class LoginPage extends HorizontalLayout {
                                 ui.navigate("admin/dashboard");
                                 break;
                             case "kasir":
-                                ui.navigate("kasir/dashboard");
+                                ui.navigate("kasir");
                                 break;
                             case "customer":
                                 ui.navigate("customer");

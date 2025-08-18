@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Random;
 
 @PageTitle("Discount Management - Kopi.in")
-@Route(value = "admin/discount", layout = MainLayout.class)
+@Route(value = "admin/discounts", layout = MainLayout.class)
 public class Discount extends VerticalLayout {
 
     // Constants

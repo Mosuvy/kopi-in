@@ -143,9 +143,9 @@ public class MainLayout extends AppLayout {
                 .set("border-radius", "8px")
                 .set("padding", "0.5rem");
 
-        nav.addItem(createSectionTitle("Authentication", VaadinIcon.USER));
-        nav.addItem(createNavItem("Login", "", VaadinIcon.SIGN_IN));
-        nav.addItem(createNavItem("Register", "register", VaadinIcon.PLUS_CIRCLE));
+//        nav.addItem(createSectionTitle("Authentication", VaadinIcon.USER));
+//        nav.addItem(createNavItem("Login", "", VaadinIcon.SIGN_IN));
+//        nav.addItem(createNavItem("Register", "register", VaadinIcon.PLUS_CIRCLE));
 
         String role = getCurrentUser() != null ? getCurrentUser().getRole() : "";
 
