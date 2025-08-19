@@ -374,15 +374,15 @@ public class Discount extends VerticalLayout {
                 .setHeader(createColumnHeader("Diskon", "💰"))
                 .setFlexGrow(1);
 
-        grid.addColumn(promo -> "Rp " + String.format("%,.0f", promo.getMin_purchase()))
+        grid.addColumn(promo -> "Rp " + String.format("%,.0f", promo.getMin_purchase() != null ? promo.getMin_purchase() : 0))
                 .setHeader(createColumnHeader("Min. Pembelian", "🛒"))
                 .setFlexGrow(1);
 
-        grid.addColumn(promo -> promo.getStart_date().toString())
+        grid.addColumn(promo -> promo.getStart_date() != null ? promo.getStart_date().toString() : "tidak ada")
                 .setHeader(createColumnHeader("Mulai", "📅"))
                 .setFlexGrow(1);
 
-        grid.addColumn(promo -> promo.getEnd_date().toString())
+        grid.addColumn(promo -> promo.getEnd_date() != null ? promo.getEnd_date().toString() : "tidak ada")
                 .setHeader(createColumnHeader("Berakhir", "📅"))
                 .setFlexGrow(1);
 

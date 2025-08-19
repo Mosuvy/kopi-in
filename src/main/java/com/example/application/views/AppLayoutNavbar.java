@@ -155,7 +155,8 @@ public class AppLayoutNavbar extends AppLayout {
         row.setSpacing(true);
 
         if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
-            Image image = new Image(item.getImageUrl(), item.getProductName());
+            Image image = new Image();
+            image.setSrc("images/products/" + item.getImageUrl());
             image.setWidth("60px");
             image.setHeight("60px");
             row.add(image);

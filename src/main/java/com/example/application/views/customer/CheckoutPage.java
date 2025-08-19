@@ -267,7 +267,8 @@ public class CheckoutPage extends VerticalLayout {
 
     private ComboBox<String> createPaymentMethodComboBox() {
         ComboBox<String> paymentMethod = new ComboBox<>("Pilih Metode Pembayaran");
-        paymentMethod.setItems("Cash", "E-Money");
+        paymentMethod.setItems("Cash", "EMoney");
+        paymentMethod.setPlaceholder("Pilih metode pembayaran");
         paymentMethod.setRequiredIndicatorVisible(true);
         paymentMethod.setWidthFull();
         return paymentMethod;

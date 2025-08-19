@@ -138,7 +138,12 @@ public class PromoDAO {
             stmt.setString(2, promo.getCode());
             stmt.setString(3, promo.getDescription());
             stmt.setDouble(4, promo.getDiscount_value());
-            stmt.setDouble(5, promo.getMin_purchase());
+            Double min_purchase = promo.getMin_purchase();
+            if (min_purchase == null) {
+                stmt.setNull(5, Types.DOUBLE);
+            } else {
+                stmt.setDouble(5, promo.getMin_purchase());
+            }
             stmt.setDate(6, promo.getStart_date());
             stmt.setDate(7, promo.getEnd_date());
             stmt.setString(8, promo.getId()); // Pastikan ID benar

@@ -101,6 +101,9 @@ public class TransactionView extends VerticalLayout {
 
     private Component createMainContent() {
         VerticalLayout mainContainer = new VerticalLayout();
+        mainContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        mainContainer.setWidthFull();
+        mainContainer.setHeightFull();
         mainContainer.setPadding(true);
         mainContainer.setSpacing(true);
 
