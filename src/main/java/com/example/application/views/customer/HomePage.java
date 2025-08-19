@@ -329,7 +329,7 @@ public class HomePage extends VerticalLayout {
         img.setAlt(altText);
         img.setSrc(imageUrl == null || imageUrl.isEmpty()
                 ? "https://placehold.co/400?text=No+Image"
-                : "images/products" + imageUrl);
+                : "images/products/" + imageUrl);
         return img;
     }
 

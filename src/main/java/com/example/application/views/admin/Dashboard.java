@@ -4,6 +4,7 @@ import com.example.application.dao.AdminDAO;
 import com.example.application.models.Feedback;
 import com.example.application.models.Users;
 import com.example.application.views.MainLayout;
+import com.example.application.views.customer.HistoryPage;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -22,6 +23,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import static com.example.application.views.AppLayoutNavbar.getCurrentUser;
 
 @PageTitle("Dashboard Admin - Kopi.in")
 @Route(value = "admin/dashboard", layout = MainLayout.class)

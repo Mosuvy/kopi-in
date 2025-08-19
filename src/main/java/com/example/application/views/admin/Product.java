@@ -216,12 +216,13 @@ public class Product extends VerticalLayout {
                     .set("color", "white")
                     .set("font-size", "24px");
 
-            if (product.getImage_url() != null && !product.getImage_url().isEmpty()) {
-                imageContainer.add(new Image("images/products/" + product.getImage_url(),
-                        getProductEmoji(getCategoryName(product.getCategory_id()))));
-            } else {
-                imageContainer.add(new Span(getProductEmoji(getCategoryName(product.getCategory_id()))));
-            }
+//            if (product.getImage_url() != null && !product.getImage_url().isEmpty()) {
+//                imageContainer.add(new Image("images/products/" + product.getImage_url(),
+//                        getProductEmoji(getCategoryName(product.getCategory_id()))));
+//            } else {
+//                imageContainer.add(new Span(getProductEmoji(getCategoryName(product.getCategory_id()))));
+//            }
+            imageContainer.add(new Span(getProductEmoji(getCategoryName(product.getCategory_id()))));
 
             return imageContainer;
         }).setHeader("Gambar").setWidth("100px");
@@ -368,7 +369,7 @@ public class Product extends VerticalLayout {
 
         if (isEdit && product.getImage_url() != null && !product.getImage_url().isEmpty()) {
             imagePreview.setSrc("images/products/" + product.getImage_url());
-            imagePreview.setVisible(true);
+            imagePreview.setVisible(false);
         }
 
         upload.addSucceededListener(event -> {
