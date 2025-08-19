@@ -11,7 +11,7 @@ public class CategoryDAO extends BaseDAO {
         List<Categories> categories = new ArrayList<>();
         try {
             ensureConnection();
-            String query = "SELECT * FROM Categories WHERE is_active = 1 ORDER BY name";
+            String query = "SELECT * FROM Categories ORDER BY name";
             preparedStatement = connection.prepareStatement(query);
             resultSet = preparedStatement.executeQuery();
 
@@ -19,8 +19,6 @@ public class CategoryDAO extends BaseDAO {
                 Categories category = new Categories();
                 category.setId(resultSet.getString("id"));
                 category.setName(resultSet.getString("name"));
-                category.setDescription(resultSet.getString("description"));
-                category.setIs_active(resultSet.getInt("is_active"));
                 categories.add(category);
             }
         } catch (SQLException e) {
@@ -35,7 +33,7 @@ public class CategoryDAO extends BaseDAO {
         Categories category = null;
         try {
             ensureConnection();
-            String query = "SELECT * FROM Categories WHERE id = ? AND is_active = 1";
+            String query = "SELECT * FROM Categories WHERE id = ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, id);
             resultSet = preparedStatement.executeQuery();
@@ -44,8 +42,6 @@ public class CategoryDAO extends BaseDAO {
                 category = new Categories();
                 category.setId(resultSet.getString("id"));
                 category.setName(resultSet.getString("name"));
-                category.setDescription(resultSet.getString("description"));
-                category.setIs_active(resultSet.getInt("is_active"));
             }
         } catch (SQLException e) {
             e.printStackTrace();

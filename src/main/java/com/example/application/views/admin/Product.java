@@ -340,7 +340,7 @@ public class Product extends VerticalLayout {
         descriptionField.setPlaceholder("Deskripsi produk...");
         descriptionField.setWidthFull();
         descriptionField.setHeight("150px");
-        if (isEdit) descriptionField.setValue(product.getDescription());
+        if (isEdit) descriptionField.setValue(product.getDescription() != null ? product.getDescription() : "");
         formLayout.setColspan(descriptionField, 2);
 
         // Category select

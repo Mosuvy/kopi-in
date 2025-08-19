@@ -100,8 +100,6 @@ public class ProductView extends VerticalLayout {
 
     private Component createMainContent() {
         VerticalLayout mainContainer = new VerticalLayout();
-        mainContainer.setMaxWidth("1200px");
-        mainContainer.setWidth("100%");
         mainContainer.setPadding(true);
         mainContainer.setSpacing(true);
 
