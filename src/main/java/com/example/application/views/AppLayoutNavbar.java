@@ -265,19 +265,19 @@ public class AppLayoutNavbar extends AppLayout {
 
         Promo promo = new PromoDAO().getPromoByCode(couponCode);
 
+
+        this.activePromo = promo;
         if (promo == null) {
             showErrorNotification("Kode promo tidak valid atau sudah kadaluarsa");
             return;
         }
 
         double subtotal = calculateSubtotal(getCartFromSession());
-        if (subtotal < promo.getMin_purchase()) {
+        if (subtotal < (promo.getMin_purchase() != null ? promo.getMin_purchase() : 0)) {
             showErrorNotification("Minimal pembelian untuk promo ini adalah " +
                     formatRupiah(promo.getMin_purchase()));
             return;
         }
-
-        this.activePromo = promo;
         this.discountAmount = subtotal * promo.getDiscount_value();
         VaadinSession.getCurrent().setAttribute("activePromo", promo);
 
